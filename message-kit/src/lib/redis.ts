@@ -1,6 +1,5 @@
 import { createClient } from "@redis/client";
 import { RedisClientType } from "@redis/client";
-import { Redis } from '@upstash/redis'
 
 export const getRedisClient = async (): Promise<RedisClientType> => {
   const client = createClient({
