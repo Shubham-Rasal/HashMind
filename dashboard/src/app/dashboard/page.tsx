@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { getAgents } from "../actions/agent-factory";
 import { Contract } from "ethers";
 import { MultiAgentChat } from "@/components/professional-multi-agent-chat";
@@ -19,13 +19,15 @@ export default async function Page() {
   const agents = (await getAgents()) as Agent[];
   console.log(agents);
 
-  if (!agents) return <div>Loading...</div>;
+  if (agents.length == 0) return <div>Loading...</div>;
 
   return (
     <div>
       <h1>Agents</h1>
       <ul>
-        <MultiAgentChat agents={agents} />
+        <Suspense fallback={"loading agents"}>
+          <MultiAgentChat agents={agents} />
+        </Suspense>
       </ul>
     </div>
   );

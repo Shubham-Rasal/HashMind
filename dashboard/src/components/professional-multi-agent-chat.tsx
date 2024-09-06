@@ -47,7 +47,7 @@ type AgentProp = {
 }
 
 export function MultiAgentChat(props: AgentProp) {
-  console.log(props.agents);
+  console.log(props.agents[0].name);
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [input, setInput] = useState("");
