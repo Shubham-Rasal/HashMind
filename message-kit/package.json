@@ -13,6 +13,7 @@
     "@upstash/redis": "^1.34.0",
     "@xmtp/message-kit": "^0.0.9",
     "@xmtp/redis-persistence": "^0.0.4",
+    "ethers": "^6.13.2",
     "node-cron": "^3.0.3"
   },
   "devDependencies": {
