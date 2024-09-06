@@ -63,6 +63,7 @@ const communityAgents: Agent[] = [
 ]
 
 export function MultiAgentChat() {
+
   const [chats, setChats] = useState<Chat[]>([])
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
   const [input, setInput] = useState('')
