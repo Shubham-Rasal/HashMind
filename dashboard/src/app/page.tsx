@@ -18,7 +18,7 @@ const clientId =
 
 // export const CHAIN_ID = "0xaa289";
 
-export const chainConfig = {
+const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
   chainId: "0xaa289",
   tickerName: "Galadriel Devnet",
