@@ -23,11 +23,13 @@ export async function getAgents() {
     const prompt = agentContract.prompt();
     const name = agentContract.name();
     const des = agentContract.description();
+    const creator = factoryContract.getCreator(agentAddress);
     return {
       address: agentAddress,
       prompt: prompt,
       name: name,
       des: des,
+      creator,
     };
   });
 

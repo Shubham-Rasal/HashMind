@@ -1,153 +1,159 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ChevronRight, MessageSquare, Plus, Store, Users, Wallet, X } from "lucide-react"
-
-type Agent = {
-  id: string
-  name: string
-  description: string
-  avatar: string
-  creator: string
-  tools: string[]
-}
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  ChevronRight,
+  MessageSquare,
+  Plus,
+  Store,
+  Users,
+  Wallet,
+  X,
+} from "lucide-react";
+import { Agent } from "@/app/dashboard/page";
 
 type Chat = {
-  id: string
-  name: string
-  agents: Agent[]
-  messages: { role: 'user' | 'agent'; content: string; agentId?: string }[]
+  id: string;
+  name: string;
+  agents: Agent[];
+  messages: { role: "user" | "agent"; content: string; agentId?: string }[];
+};
+
+const tools = ["test", "Test", "Test"];
+
+type AgentProp = {
+  agents: Agent[];
 }
 
-const communityAgents: Agent[] = [
-  { 
-    id: '1', 
-    name: 'General Assistant', 
-    description: 'A versatile AI assistant for various tasks', 
-    avatar: '/placeholder.svg?height=80&width=80', 
-    creator: '0x1234...5678',
-    tools: ['Web Search', 'Calculator', 'Text Analysis']
-  },
-  { 
-    id: '2', 
-    name: 'Code Helper', 
-    description: 'Specialized in coding and development assistance', 
-    avatar: '/placeholder.svg?height=80&width=80', 
-    creator: '0xabcd...efgh',
-    tools: ['Code Completion', 'Syntax Highlighting', 'Debugging']
-  },
-  { 
-    id: '3', 
-    name: 'Writing Aid', 
-    description: 'Expert in writing and editing various types of content', 
-    avatar: '/placeholder.svg?height=80&width=80', 
-    creator: '0x9876...5432',
-    tools: ['Grammar Check', 'Style Analysis', 'Plagiarism Detection']
-  },
-  { 
-    id: '4', 
-    name: 'Data Analyst', 
-    description: 'Specializes in data analysis and visualization', 
-    avatar: '/placeholder.svg?height=80&width=80', 
-    creator: '0xijkl...mnop',
-    tools: ['Data Visualization', 'Statistical Analysis', 'Machine Learning']
-  },
-]
-
-export function MultiAgentChat() {
-
-  const [chats, setChats] = useState<Chat[]>([])
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
-  const [input, setInput] = useState('')
-  const [isWalletConnected, setIsWalletConnected] = useState(false)
-  const [selectedAgents, setSelectedAgents] = useState<Agent[]>([])
-  const [activeTab, setActiveTab] = useState<'chats' | 'marketplace'>('chats')
+export function MultiAgentChat(props: AgentProp) {
+  console.log(props.agents);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  const [input, setInput] = useState("");
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const [selectedAgents, setSelectedAgents] = useState<Agent[]>([]);
+  const [activeTab, setActiveTab] = useState<"chats" | "marketplace">("chats");
 
   const handleCreateChat = () => {
     if (selectedAgents.length > 0) {
       const newChat: Chat = {
         id: Date.now().toString(),
-        name: `Chat with ${selectedAgents.map(a => a.name).join(', ')}`,
+        name: `Chat with ${selectedAgents.map((a) => a.name).join(", ")}`,
         agents: selectedAgents,
-        messages: []
-      }
-      setChats([...chats, newChat])
-      setSelectedChat(newChat)
-      setSelectedAgents([])
-      setActiveTab('chats')
+        messages: [],
+      };
+      setChats([...chats, newChat]);
+      setSelectedChat(newChat);
+      setSelectedAgents([]);
+      setActiveTab("chats");
     }
-  }
+  };
 
   const handleSendMessage = () => {
     if (input.trim() && selectedChat) {
       const updatedChat = {
         ...selectedChat,
-        messages: [...selectedChat.messages, { role: 'user', content: input }]
-      }
-      setChats(chats.map(chat => chat.id === selectedChat.id ? {
-        ...updatedChat,
-        messages: updatedChat.messages.map(message => ({
-          ...message,
-          role: message.role as 'user' | 'agent'
-        }))
-      } : chat))
+        messages: [...selectedChat.messages, { role: "user", content: input }],
+      };
+      setChats(
+        chats.map((chat) =>
+          chat.id === selectedChat.id
+            ? {
+                ...updatedChat,
+                messages: updatedChat.messages.map((message) => ({
+                  ...message,
+                  role: message.role as "user" | "agent",
+                })),
+              }
+            : chat
+        )
+      );
       setSelectedChat({
         ...updatedChat,
-        messages: updatedChat.messages.map(message => ({
+        messages: updatedChat.messages.map((message) => ({
           ...message,
-          role: message.role as 'user' | 'agent'
-        }))
-      })
-      setInput('')
+          role: message.role as "user" | "agent",
+        })),
+      });
+      setInput("");
 
       // Simulate agent responses (replace with actual API calls in a real application)
       setTimeout(() => {
-        const agentResponses = selectedChat.agents.map(agent => ({
-          role: 'agent' as const,
+        const agentResponses = selectedChat.agents.map((agent) => ({
+          role: "agent" as const,
           content: `${agent.name} response to: ${input}`,
-          agentId: agent.id
-        }))
+          agentId: agent.address,
+        }));
         const updatedChatWithResponses = {
           ...updatedChat,
-          messages: [...updatedChat.messages, ...agentResponses]
-        }
-        setChats(chats.map(chat => chat.id === selectedChat.id ? {
-          ...updatedChatWithResponses,
-          messages: updatedChatWithResponses.messages.map(message => ({
-            ...message,
-            role: message.role as 'user' | 'agent'
-          }))
-        } : chat))
+          messages: [...updatedChat.messages, ...agentResponses],
+        };
+        setChats(
+          chats.map((chat) =>
+            chat.id === selectedChat.id
+              ? {
+                  ...updatedChatWithResponses,
+                  messages: updatedChatWithResponses.messages.map(
+                    (message) => ({
+                      ...message,
+                      role: message.role as "user" | "agent",
+                    })
+                  ),
+                }
+              : chat
+          )
+        );
         setSelectedChat({
           ...updatedChatWithResponses,
-          messages: updatedChatWithResponses.messages.map(message => ({
+          messages: updatedChatWithResponses.messages.map((message) => ({
             ...message,
-            role: message.role as 'user' | 'agent'
-          }))
-        })
-      }, 1000)
+            role: message.role as "user" | "agent",
+          })),
+        });
+      }, 1000);
     }
-  }
+  };
 
   const handleConnectWallet = () => {
     // Implement wallet connection logic here
-    setIsWalletConnected(true)
-  }
+    setIsWalletConnected(true);
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 font-bold text-lg text-gray-800">Multi-Agent Chat</div>
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'chats' | 'marketplace')} className="flex-grow flex flex-col">
+        <div className="p-4 font-bold text-lg text-gray-800">
+          Multi-Agent Chat
+        </div>
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) =>
+            setActiveTab(value as "chats" | "marketplace")
+          }
+          className="flex-grow flex flex-col"
+        >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="chats">Chats</TabsTrigger>
             <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
@@ -155,10 +161,14 @@ export function MultiAgentChat() {
           <TabsContent value="chats" className="flex-grow flex flex-col">
             <ScrollArea className="flex-grow">
               <div className="p-4">
-                <Button className="w-full mb-4" variant="outline" onClick={() => setActiveTab('marketplace')}>
+                <Button
+                  className="w-full mb-4"
+                  variant="outline"
+                  onClick={() => setActiveTab("marketplace")}
+                >
                   <Plus className="mr-2 h-4 w-4" /> New Chat
                 </Button>
-                {chats.map(chat => (
+                {chats.map((chat) => (
                   <Button
                     key={chat.id}
                     variant="ghost"
@@ -188,29 +198,32 @@ export function MultiAgentChat() {
 
       {/* Main Area */}
       <div className="flex-grow flex flex-col">
-        {activeTab === 'marketplace' ? (
+        {activeTab === "marketplace" ? (
           <div className="flex-grow overflow-auto">
             <div className="p-6">
               <h2 className="text-2xl font-bold mb-4">Agent Marketplace</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {communityAgents.map(agent => (
-                  <Card key={agent.id} className="overflow-hidden">
+                {props.agents.map((agent: Agent) => (
+                  <Card key={agent.address} className="overflow-hidden">
                     <CardHeader className="p-4">
                       <div className="flex items-center space-x-4">
-                        <img src={agent.avatar} alt={agent.name} className="w-12 h-12 rounded-full" />
+                        {/* <img src={agent.avatar} alt={agent.name} className="w-12 h-12 rounded-full" /> */}
                         <div>
                           <CardTitle>{agent.name}</CardTitle>
-                          <CardDescription>{agent.description}</CardDescription>
+                          <CardDescription>{agent.des}</CardDescription>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
-                      <p className="text-sm text-gray-500">Creator: {agent.creator}</p>
+                      {/* <p className="text-sm text-gray-500">Creator: {agent.creator}</p> */}
                       <div className="mt-2">
                         <p className="text-sm font-medium">Tools:</p>
                         <div className="flex flex-wrap gap-1 mt-1">
-                          {agent.tools.map((tool, index) => (
-                            <span key={index} className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                          {tools.map((tool, index) => (
+                            <span
+                              key={index}
+                              className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded"
+                            >
                               {tool}
                             </span>
                           ))}
@@ -218,16 +231,20 @@ export function MultiAgentChat() {
                       </div>
                     </CardContent>
                     <CardFooter className="p-4">
-                      <Button 
-                        variant="outline" 
-                        className="w-full" 
-                        onClick={() => setSelectedAgents(prev => 
-                          prev.some(a => a.id === agent.id) 
-                            ? prev.filter(a => a.id !== agent.id)
-                            : [...prev, agent]
-                        )}
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() =>
+                          setSelectedAgents((prev) =>
+                            prev.some((a) => a.address === agent.address)
+                              ? prev.filter((a) => a.address !== agent.address)
+                              : [...prev, agent]
+                          )
+                        }
                       >
-                        {selectedAgents.some(a => a.id === agent.id) ? 'Remove from Chat' : 'Add to Chat'}
+                        {selectedAgents.some((a) => a.address === agent.address)
+                          ? "Remove from Chat"
+                          : "Add to Chat"}
                       </Button>
                     </CardFooter>
                   </Card>
@@ -238,11 +255,10 @@ export function MultiAgentChat() {
               <div className="fixed bottom-0 left-64 right-0 bg-white border-t border-gray-200 p-4">
                 <div className="flex justify-between items-center">
                   <div className="text-sm text-gray-500">
-                    {selectedAgents.length} agent{selectedAgents.length !== 1 ? 's' : ''} selected
+                    {selectedAgents.length} agent
+                    {selectedAgents.length !== 1 ? "s" : ""} selected
                   </div>
-                  <Button onClick={handleCreateChat}>
-                    Create Chat
-                  </Button>
+                  <Button onClick={handleCreateChat}>Create Chat</Button>
                 </div>
               </div>
             )}
@@ -250,8 +266,14 @@ export function MultiAgentChat() {
         ) : selectedChat ? (
           <>
             <div className="bg-white border-b border-gray-200 p-4 flex items-center">
-              <h2 className="font-semibold text-lg text-gray-800 flex-grow">{selectedChat.name}</h2>
-              <Button variant="ghost" size="icon" onClick={() => setSelectedChat(null)}>
+              <h2 className="font-semibold text-lg text-gray-800 flex-grow">
+                {selectedChat.name}
+              </h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSelectedChat(null)}
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -260,19 +282,23 @@ export function MultiAgentChat() {
                 <div
                   key={index}
                   className={`mb-4 ${
-                    message.role === 'user' ? 'text-right' : 'text-left'
+                    message.role === "user" ? "text-right" : "text-left"
                   }`}
                 >
                   <div
                     className={`inline-block p-3 rounded-lg ${
-                      message.role === 'user'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-800'
+                      message.role === "user"
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 text-gray-800"
                     }`}
                   >
-                    {message.role === 'agent' && (
+                    {message.role === "agent" && (
                       <div className="font-semibold text-xs mb-1 text-gray-600">
-                        {selectedChat.agents.find(a => a.id === message.agentId)?.name}
+                        {
+                          selectedChat.agents.find(
+                            (a) => a.address === message.agentId
+                          )?.name
+                        }
                       </div>
                     )}
                     {message.content}
@@ -286,7 +312,7 @@ export function MultiAgentChat() {
                   placeholder="Type your message..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                   className="flex-grow"
                 />
                 <Button onClick={handleSendMessage}>
@@ -302,5 +328,5 @@ export function MultiAgentChat() {
         )}
       </div>
     </div>
-  )
+  );
 }
