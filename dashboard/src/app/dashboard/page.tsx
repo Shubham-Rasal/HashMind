@@ -1,3 +1,4 @@
+// "use client"
 import React, { Suspense } from "react";
 import { getAgents } from "../actions/agent-factory";
 import { Contract } from "ethers";
@@ -23,7 +24,6 @@ export default async function Page() {
 
   return (
     <div>
-      <h1>Agents</h1>
       <ul>
         <Suspense fallback={"loading agents"}>
           <MultiAgentChat agents={agents} />

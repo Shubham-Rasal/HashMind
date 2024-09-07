@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Contract, ethers, Wallet } from "ethers";
+import { abi } from "@/abis/Agent.sol/Agent.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
+import RPC from "@/utils/ethersRPC";
 import {
   Card,
   CardContent,
@@ -15,17 +17,40 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   ChevronRight,
+  Copy,
   MessageSquare,
   Plus,
-  Store,
-  Users,
-  Wallet,
+  Wallet as WalletIcon,
   X,
 } from "lucide-react";
 import { Agent } from "@/app/dashboard/page";
+import { CHAIN_NAMESPACES, IProvider, WEB3AUTH_NETWORK } from "@web3auth/base";
+import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
+import { Web3Auth } from "@web3auth/modal";
+
+const clientId =
+  "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ"; // get from https://dashboard.web3auth.io
+
+const chainConfig = {
+  chainNamespace: CHAIN_NAMESPACES.EIP155,
+  chainId: "0xaa289",
+  tickerName: "Galadriel Devnet",
+  ticker: "GAL",
+  blockExplorerUrl: "https://explorer.galadriel.com",
+  rpcTarget: "https://devnet.galadriel.com/",
+};
+
+const privateKeyProvider = new EthereumPrivateKeyProvider({
+  config: { chainConfig },
+});
+
+const web3auth = new Web3Auth({
+  clientId,
+  web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
+  privateKeyProvider,
+});
 
 type Chat = {
   id: string;
@@ -40,14 +65,55 @@ type AgentProp = {
   agents: Agent[];
 };
 
+interface Message {
+  role: string;
+  content: string;
+}
+
 export function MultiAgentChat(props: AgentProp) {
-  console.log(props.agents[0].name);
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [input, setInput] = useState("");
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [selectedAgents, setSelectedAgents] = useState<Agent[]>([]);
   const [activeTab, setActiveTab] = useState<"chats" | "marketplace">("chats");
+  const [provider, setProvider] = useState<IProvider | null>(null);
+  const [userProfile, setUser] = useState<any>(null);
+  const [balance, setBalance] = useState<string | null>(null);
+  const [accounts, setAccounts] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await web3auth.initModal();
+        setProvider(web3auth.provider);
+
+        if (web3auth.connected) {
+          const user = await web3auth.getUserInfo();
+
+          setUser(user);
+          setIsWalletConnected(true);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    init();
+  }, []);
+
+  useEffect(() => {
+    const savedChats = localStorage.getItem("chats");
+    if (savedChats) {
+      setChats(JSON.parse(savedChats));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (chats.length > 0) {
+      localStorage.setItem("chats", JSON.stringify(chats));
+    }
+  }, [chats]);
 
   const handleCreateChat = () => {
     if (selectedAgents.length > 0) {
@@ -64,7 +130,7 @@ export function MultiAgentChat(props: AgentProp) {
     }
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (input.trim() && selectedChat) {
       const updatedChat = {
         ...selectedChat,
@@ -92,16 +158,17 @@ export function MultiAgentChat(props: AgentProp) {
       });
       setInput("");
 
-      // Simulate agent responses (replace with actual API calls in a real application)
-      setTimeout(() => {
-        const agentResponses = selectedChat.agents.map((agent) => ({
+      // Call each agent and get their responses
+      for (const agent of selectedChat.agents) {
+        const agentResponses = await callAgent(agent, input);
+        const agentMessages = agentResponses.map((message) => ({
           role: "agent" as const,
-          content: `${agent.address} response to: ${input}`,
+          content: message.content,
           agentId: agent.address,
         }));
         const updatedChatWithResponses = {
           ...updatedChat,
-          messages: [...updatedChat.messages, ...agentResponses],
+          messages: [...updatedChat.messages, ...agentMessages],
         };
         setChats(
           chats.map((chat) =>
@@ -125,13 +192,108 @@ export function MultiAgentChat(props: AgentProp) {
             role: message.role as "user" | "agent",
           })),
         });
-      }, 1000);
+      }
     }
   };
 
-  const handleConnectWallet = () => {
-    // Implement wallet connection logic here
-    setIsWalletConnected(true);
+  const handleConnectWallet = async () => {
+    try {
+      const web3authProvider = await web3auth.connect();
+      setProvider(web3authProvider);
+      if (web3auth.connected) {
+        setIsWalletConnected(true);
+      }
+    } catch (error) {
+      console.error("Failed to connect wallet:", error);
+    }
+  };
+
+  const handleCopyWalletAddress = () => {
+    if (userProfile) {
+      navigator.clipboard.writeText(userProfile.walletAddress);
+      // You might want to show a toast or some feedback here
+    }
+  };
+
+  const callAgent = async (agent: Agent, query: string): Promise<Message[]> => {
+    const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL;
+    if (!rpcUrl) throw Error("Missing NEXT_PUBLIC_RPC_URL in .env");
+    const privateKey = process.env.NEXT_PUBLIC_PRIVATE_KEY;
+    if (!privateKey) throw Error("Missing NEXT_PUBLIC_PRIVATE_KEY in .env");
+    const contractAddress = agent.address;
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const wallet = new Wallet(privateKey, provider);
+    const contract = new Contract(contractAddress, abi, wallet);
+
+    const maxIterations = 5; // Set a default value for max iterations
+
+    // Call the runAgent function
+    const transactionResponse = await contract.runAgent(query, maxIterations);
+    const receipt = await transactionResponse.wait();
+
+    // Get the agent run ID from transaction receipt logs
+    const agentRunID = getAgentRunId(receipt, contract);
+    if (!agentRunID && agentRunID !== 0) {
+      return [];
+    }
+
+    let allMessages: Message[] = [];
+    let exitNextLoop = false;
+    while (true) {
+      const newMessages: Message[] = await getNewMessages(
+        contract,
+        agentRunID,
+        allMessages.length
+      );
+      if (newMessages) {
+        allMessages = [...allMessages, ...newMessages];
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      if (exitNextLoop) {
+        break;
+      }
+      if (await contract.isRunFinished(agentRunID)) {
+        exitNextLoop = true;
+      }
+    }
+    return allMessages;
+  };
+
+  const getAgentRunId = (
+    receipt: ethers.TransactionReceipt,
+    contract: ethers.Contract
+  ) => {
+    let agentRunID;
+    for (const log of receipt.logs) {
+      try {
+        const parsedLog = contract.interface.parseLog(log);
+        if (parsedLog && parsedLog.name === "AgentRunCreated") {
+          agentRunID = ethers.toNumber(parsedLog.args[1]);
+        }
+      } catch (error) {
+        console.log("Could not parse log:", log);
+      }
+    }
+    return agentRunID;
+  };
+
+  const getNewMessages = async (
+    contract: ethers.Contract,
+    agentRunID: number,
+    currentMessagesCount: number
+  ): Promise<Message[]> => {
+    const messages = await contract.getMessageHistory(agentRunID);
+
+    const newMessages: Message[] = [];
+    messages.forEach((message: any, i: number) => {
+      if (i >= currentMessagesCount) {
+        newMessages.push({
+          role: message.role,
+          content: message.content[0].value,
+        });
+      }
+    });
+    return newMessages;
   };
 
   return (
@@ -184,8 +346,36 @@ export function MultiAgentChat(props: AgentProp) {
             className="w-full"
             onClick={handleConnectWallet}
           >
-            <Wallet className="mr-2 h-4 w-4" />
-            {isWalletConnected ? "Wallet Connected" : "Connect Wallet"}
+            <WalletIcon className="mr-2 h-4 w-4" />
+            {isWalletConnected && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div>
+                    <h3 className="font-semibold">{userProfile.name}</h3>
+                    <p className="text-sm text-gray-500">{userProfile.email}</p>
+                  </div>
+                </div>
+                <Button
+                  variant="link"
+                  className="text-blue-500 p-0 h-auto font-normal"
+                >
+                  View User Info
+                </Button>
+                <div className="mt-2 bg-white border border-gray-200 rounded flex items-center">
+                  <span className="text-xs text-gray-500 px-2 py-1 flex-grow truncate">
+                    {accounts ? accounts[0] : "No account connected"}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleCopyWalletAddress}
+                    className="h-8 w-8"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </Button>
         </div>
       </div>
@@ -201,7 +391,6 @@ export function MultiAgentChat(props: AgentProp) {
                   <Card key={agent.address} className="overflow-hidden">
                     <CardHeader className="p-4">
                       <div className="flex items-center space-x-4">
-                        {/* <img src={agent.avatar} alt={agent.name} className="w-12 h-12 rounded-full" /> */}
                         <div>
                           <CardTitle>{agent.name}</CardTitle>
                           <CardDescription>{agent.des}</CardDescription>
@@ -209,7 +398,6 @@ export function MultiAgentChat(props: AgentProp) {
                       </div>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
-                      {/* <p className="text-sm text-gray-500">Creator: {agent.creator}</p> */}
                       <div className="mt-2">
                         <p className="text-sm font-medium">Tools:</p>
                         <div className="flex flex-wrap gap-1 mt-1">
