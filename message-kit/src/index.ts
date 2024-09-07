@@ -1,6 +1,19 @@
 import { getRedisClient } from "./lib/redis.js";
 import { run, HandlerContext } from "@xmtp/message-kit";
 import { startCron } from "./lib/cron.js";
+import { ethers } from "ethers";
+
+// const provider = new ethers.JsonRpcProvider("YOUR_RPC_URL");
+// const privateKey = "YOUR_PRIVATE_KEY";
+// const wallet = new ethers.Wallet(privateKey, provider);
+// const contractAddress = "YOUR_CONTRACT_ADDRESS";
+// const contractABI: readonly any[] = [
+//   // Your contract ABI here
+// ];
+// const contract = new ethers.Contract(contractAddress, contractABI, wallet);
+
+// List of valid tools
+const validTools = ["web_search", "codeinterpreter", "image_gen"];
 
 // Tracks conversation steps
 const inMemoryCacheStep = new Map<string, number>();
@@ -26,7 +39,6 @@ run(async (context: HandlerContext) => {
     clientInitialized = true;
   }
   if (typeId !== "text") {
-    /* If the input is not text do nothing */
     return;
   }
 
@@ -48,58 +60,88 @@ run(async (context: HandlerContext) => {
 
   switch (cacheStep) {
     case 0:
-      message = "Welcome to the AI Agent Configuration Bot! Let's get started. What's the main topic or domain you want your AI agent to focus on? Options: [1] General Knowledge, [2] Finance, [3] Healthcare, [4] Technology, [5] Other (please specify)";
+      message = "Welcome to the AI Agent Configuration Bot! Let's get started. What's the name you want to give your AI agent?";
       inMemoryCacheStep.set(sender.address, 1);
       break;
     case 1:
       userResponse = text;
-      await redisClient.hSet(sender.address, "topic", userResponse);
-      message = "Great! Now, what specific tools or APIs would you like your AI agent to have access to? Options: [1] Web Search, [2] Data Analysis, [3] Image Generation, [4] Natural Language Processing, [5] Other (please specify)";
+      await redisClient.hSet(sender.address, "name", userResponse);
+      message = "Great name! Now, please provide a brief description of your AI agent.";
       inMemoryCacheStep.set(sender.address, 2);
       break;
     case 2:
       userResponse = text;
-      await redisClient.hSet(sender.address, "tools", userResponse);
-      message = "Excellent choice! Are there any specific websites, databases, or resources you want your AI agent to reference? Options: [1] Wikipedia, [2] Academic Journals, [3] Government Databases, [4] Social Media, [5] Other (please provide links or names)";
+      await redisClient.hSet(sender.address, "description", userResponse);
+      message = "Excellent! Now, what's the main topic or domain you want your AI agent to focus on? Options: [1] General Knowledge, [2] Finance, [3] Healthcare, [4] Technology, [5] Other (please specify)";
       inMemoryCacheStep.set(sender.address, 3);
       break;
     case 3:
       userResponse = text;
-      await redisClient.hSet(sender.address, "resources", userResponse);
-      message = "Thank you! Now, what's the primary goal or task you want your AI agent to accomplish? Options: [1] Answer Questions, [2] Analyze Data, [3] Generate Content, [4] Assist with Decision Making, [5] Other (please specify)";
+      await redisClient.hSet(sender.address, "topic", userResponse);
+      message = "Great! Now, what tools would you like your AI agent to have access to? Choose from: web_search, codeinterpreter, image_gen. You can select multiple by separating them with commas.";
       inMemoryCacheStep.set(sender.address, 4);
       break;
     case 4:
-      userResponse = text;
-      await redisClient.hSet(sender.address, "goal", userResponse);
-      message = "Understood. Lastly, are there any specific constraints or ethical guidelines you want your AI agent to follow? Options: [1] Protect User Privacy, [2] Avoid Biased Language, [3] Fact-Check Information, [4] Respect Intellectual Property, [5] Other (please specify)";
-      inMemoryCacheStep.set(sender.address, 5);
+      userResponse = text.toLowerCase().split(',').map((tool: string) => tool.trim());
+      const validUserTools = (userResponse as any).filter((tool: string) => validTools.includes(tool));
+      if (validUserTools.length === 0) {
+        message = "No valid tools selected. Please choose from: web_search, codeinterpreter, image_gen.";
+      } else {
+        await redisClient.hSet(sender.address, "tools", validUserTools.join(','));
+        message = "Thank you! Now, what's the primary goal or task you want your AI agent to accomplish?";
+        inMemoryCacheStep.set(sender.address, 5);
+      }
       break;
     case 5:
       userResponse = text;
-      await redisClient.hSet(sender.address, "constraints", userResponse);
+      await redisClient.hSet(sender.address, "goal", userResponse);
+      message = "Understood. Lastly, please provide a system-level prompt for your AI agent. This will guide its behavior and responses.";
+      inMemoryCacheStep.set(sender.address, 6);
+      break;
+    case 6:
+      userResponse = text;
+      await redisClient.hSet(sender.address, "system_prompt", userResponse);
       
       // Compile all user responses
       const compiledResponses = await redisClient.hGetAll(sender.address);
       
-      // Store compiled responses (This is where you'd send to the smart contract)
+      // Store compiled responses
       await redisClient.set(`${sender.address}_compiled`, JSON.stringify(compiledResponses));
       
-      message = "Thank you for providing all the information! Your AI agent configuration is complete. Here's a summary of your choices:\n\n" +
+      // Call smart contract
+      // try {
+      //   const tx = await contract.configureAIAgent(
+      //     sender.address,
+      //     compiledResponses.name,
+      //     compiledResponses.description,
+      //     compiledResponses.topic,
+      //     compiledResponses.tools,
+      //     compiledResponses.goal,
+      //     compiledResponses.system_prompt
+      //   );
+      //   await tx.wait();
+      //   console.log("Smart contract called successfully");
+      // } catch (error) {
+      //   console.error("Error calling smart contract:", error);
+      // }
+      
+      message = "Thank you for providing all the information! Your AI agent configuration is complete and has been sent to the blockchain. Here's a summary of your choices:\n\n" +
+                `Name: ${compiledResponses.name}\n` +
+                `Description: ${compiledResponses.description}\n` +
                 `Topic: ${compiledResponses.topic}\n` +
                 `Tools: ${compiledResponses.tools}\n` +
-                `Resources: ${compiledResponses.resources}\n` +
                 `Goal: ${compiledResponses.goal}\n` +
-                `Constraints: ${compiledResponses.constraints}\n\n` +
+                `System Prompt: ${compiledResponses.system_prompt}\n` +
+                `Creator Address: ${sender.address}\n\n` +
                 "Type 'reset' if you want to start over, or 'stop' to end the conversation.";
-      inMemoryCacheStep.set(sender.address, 6);
+      inMemoryCacheStep.set(sender.address, 7);
       break;
-    case 6:
+    case 7:
       if (lowerContent === 'reset') {
         inMemoryCacheStep.set(sender.address, 0);
         await redisClient.del(sender.address);
         await redisClient.del(`${sender.address}_compiled`);
-        message = "Configuration reset. Let's start over. What's the main topic or domain you want your AI agent to focus on? Options: [1] General Knowledge, [2] Finance, [3] Healthcare, [4] Technology, [5] Other (please specify)";
+        message = "Configuration reset. Let's start over. What's the name you want to give your AI agent?";
       } else {
         message = "Your AI agent configuration is already complete. Type 'reset' to start over or 'stop' to end the conversation.";
       }
@@ -111,4 +153,5 @@ run(async (context: HandlerContext) => {
 
   // Send the message
   await context.reply(message);
+
 });
