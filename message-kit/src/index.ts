@@ -3,14 +3,157 @@ import { run, HandlerContext } from "@xmtp/message-kit";
 import { startCron } from "./lib/cron.js";
 import { ethers } from "ethers";
 
-// const provider = new ethers.JsonRpcProvider("YOUR_RPC_URL");
-// const privateKey = "YOUR_PRIVATE_KEY";
-// const wallet = new ethers.Wallet(privateKey, provider);
-// const contractAddress = "YOUR_CONTRACT_ADDRESS";
-// const contractABI: readonly any[] = [
-//   // Your contract ABI here
-// ];
-// const contract = new ethers.Contract(contractAddress, contractABI, wallet);
+const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+const privateKey = process.env.PRIVATE_KEY;
+
+if (!privateKey) {
+  throw new Error("PRIVATE_KEY env var is required");
+}
+
+const wallet = new ethers.Wallet(privateKey, provider);
+const contractAddress = process.env.AGENT_FACTORY_ADDRESS;
+
+if (!contractAddress) {
+  throw new Error("AGENT_FACTORY_ADDRESS env var is required");
+}
+
+const contractABI: readonly any[] = [
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "creator",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "agentAddress",
+            "type": "address"
+          }
+        ],
+        "name": "AgentCreated",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "name": "agentToCreator",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "name": "agents",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "creatorAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "initialOracleAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "systemPrompt",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "tools",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          }
+        ],
+        "name": "createAgent",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "getAgents",
+        "outputs": [
+          {
+            "internalType": "address[]",
+            "name": "",
+            "type": "address[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "agent",
+            "type": "address"
+          }
+        ],
+        "name": "getCreator",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+];
+
+const contract = new ethers.Contract(contractAddress, contractABI, wallet);
 
 // List of valid tools
 const validTools = ["web_search", "codeinterpreter", "image_gen"];
@@ -72,7 +215,7 @@ run(async (context: HandlerContext) => {
     case 2:
       userResponse = text;
       await redisClient.hSet(sender.address, "description", userResponse);
-      message = "Excellent! Now, what's the main topic or domain you want your AI agent to focus on? Options: [1] General Knowledge, [2] Finance, [3] Healthcare, [4] Technology, [5] Other (please specify)";
+      message = "Excellent! Now, what's the primary topic or domain your AI agent will focus on?";
       inMemoryCacheStep.set(sender.address, 3);
       break;
     case 3:
@@ -108,22 +251,21 @@ run(async (context: HandlerContext) => {
       // Store compiled responses
       await redisClient.set(`${sender.address}_compiled`, JSON.stringify(compiledResponses));
       
-      // Call smart contract
-      // try {
-      //   const tx = await contract.configureAIAgent(
-      //     sender.address,
-      //     compiledResponses.name,
-      //     compiledResponses.description,
-      //     compiledResponses.topic,
-      //     compiledResponses.tools,
-      //     compiledResponses.goal,
-      //     compiledResponses.system_prompt
-      //   );
-      //   await tx.wait();
-      //   console.log("Smart contract called successfully");
-      // } catch (error) {
-      //   console.error("Error calling smart contract:", error);
-      // }
+
+      try {
+        const tx = await contract.createAgent(
+          sender.address,
+          "0x68EC9556830AD097D661Df2557FBCeC166a0A075", // initialOracleAddress
+          compiledResponses.system_prompt,
+          "[{\"type\":\"function\",\"function\":{\"name\":\"web_search\",\"description\":\"Search the internet\",\"parameters\":{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\",\"description\":\"Search query\"}},\"required\":[\"query\"]}}}]", // tools
+          compiledResponses.name,
+          compiledResponses.description
+        );
+        console.log(tx);
+        console.log("Smart contract called successfully");
+      } catch (error) {
+        console.error("Error calling smart contract:", error);
+      }
       
       message = "Thank you for providing all the information! Your AI agent configuration is complete and has been sent to the blockchain. Here's a summary of your choices:\n\n" +
                 `Name: ${compiledResponses.name}\n` +
