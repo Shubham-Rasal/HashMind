@@ -6,13 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+
 import {
   Card,
   CardContent,
@@ -44,7 +38,7 @@ const tools = ["test", "Test", "Test"];
 
 type AgentProp = {
   agents: Agent[];
-}
+};
 
 export function MultiAgentChat(props: AgentProp) {
   console.log(props.agents[0].name);
@@ -102,7 +96,7 @@ export function MultiAgentChat(props: AgentProp) {
       setTimeout(() => {
         const agentResponses = selectedChat.agents.map((agent) => ({
           role: "agent" as const,
-          content: `${agent.name} response to: ${input}`,
+          content: `${agent.address} response to: ${input}`,
           agentId: agent.address,
         }));
         const updatedChatWithResponses = {
