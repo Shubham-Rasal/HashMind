@@ -17,13 +17,13 @@ export async function getAgents() {
   console.log(factoryContract);
   const allAgents = await factoryContract.getAgents();
 
-  const agents = allAgents.map((agentAddress: string) => {
+  const agents = allAgents.map(async (agentAddress: string) => {
     const agentContract = new Contract(agentAddress, agentAbi, wallet);
     //get the agent details in the form of a promise
-    const prompt = agentContract.prompt();
-    const name = agentContract.name();
-    const des = agentContract.description();
-    const creator = factoryContract.getCreator(agentAddress);
+    const prompt = await agentContract.prompt();
+    const name = await agentContract.name();
+    const des = await agentContract.description();
+    const creator = await factoryContract.getCreator(agentAddress);
     return {
       address: agentAddress,
       prompt: prompt,
@@ -33,5 +33,7 @@ export async function getAgents() {
     };
   });
 
-  return Promise.all(agents);
+  //resolve the promise
+  const agentsResolved = await Promise.all(agents);
+  return agentsResolved;
 }
