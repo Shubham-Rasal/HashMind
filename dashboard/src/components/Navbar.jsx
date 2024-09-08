@@ -5,8 +5,8 @@ import localFont from "next/font/local";
 
 // Font files can be colocated inside of `app`
 const Satoshi = localFont({
-    src: [{ path: "../../fonts/Satoshi-Bold.woff2" }],
-    display: "swap",
+  src: [{ path: "../../fonts/Satoshi-Bold.woff2" }],
+  display: "swap",
 });
 
 const Instrument = localFont({
@@ -21,25 +21,25 @@ export default function Navbar() {
     <nav className={twMerge(
       Satoshi.className,
       "bg-white/70 backdrop-blur-md dark:bg-gray-900 fixed w-full z-20 top-0 left-0 border-b border-gray-200 dark:border-gray-600",
-      
-  )}>
+
+    )}>
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
         <Link href="/" className="flex items-center">
           <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">#<span className={twMerge(
-                            Instrument.className,
-                            "text-green-700 dark:text-green-400",
-                            
-                        )}>Mind</span></span>
+            Instrument.className,
+            "text-green-700 dark:text-green-400",
+
+          )}>Mind</span></span>
         </Link>
         <div className="flex md:order-2">
 
-        <Link
-                                href="/marketplace"
-                                className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:bg-green-700 before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 sm:w-max"
-                            >
-                                <span className="relative text-base font-semibold text-white"
-                                >Get Started</span>
-                            </Link>
+          <Link
+            href="/dashboard"
+            className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:bg-green-700 before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 sm:w-max"
+          >
+            <span className="relative text-base font-semibold text-white"
+            >Get Started</span>
+          </Link>
 
 
           {/* <button type="button" className="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 text-center mr-3 md:mr-0 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Get started</button> */}

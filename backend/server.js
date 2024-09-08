@@ -1,4 +1,5 @@
 import express from "express"
+import cors from "cors"  // Add this import
 
 import { encryptString, decryptToString, LitNodeClient } from "@lit-protocol/lit-node-client";
 import { Wallet } from "ethers";
@@ -15,6 +16,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: './.env' });
 
 const app = express();
+app.use(cors());  // Add this line to enable CORS for all routes
 app.use(express.json());
 
 const port = process.env.PORT || 8000;
