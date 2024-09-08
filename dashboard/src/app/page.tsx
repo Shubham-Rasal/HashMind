@@ -7,6 +7,10 @@ import { CHAIN_NAMESPACES, IProvider, WEB3AUTH_NETWORK } from "@web3auth/base";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { Web3Auth } from "@web3auth/modal";
 import { useEffect, useState } from "react";
+import Hero from '@/components/HeroSection'
+import Features from '@/components/Features'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 
 import RPC from "@/utils/ethersRPC";
 import { MultiAgentChat } from "@/components/professional-multi-agent-chat";
@@ -168,9 +172,12 @@ function App() {
   );
 
   return (
-    <div className="container mx-auto p-4">
-    sfsd
-    </div>
+    <main className="dark:bg-gray-900">
+      <Navbar />
+      <Hero />
+      <Features />
+      <Footer />
+    </main>
   );
 }
 
