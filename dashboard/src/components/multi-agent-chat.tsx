@@ -30,11 +30,21 @@ import { Agent } from "@/app/dashboard/page";
 import { CHAIN_NAMESPACES, IProvider, WEB3AUTH_NETWORK } from "@web3auth/base";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { Web3Auth } from "@web3auth/modal";
-import { createTopic, submitMessage } from "@/app/actions/hedera-consensus-service";
-import { Client, PrivateKey } from "@hashgraph/sdk";
-
+import {
+  createTopic,
+  submitMessage,
+} from "@/app/actions/hedera-consensus-service";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 const clientId =
-  "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ"; // get from https://dashboard.web3auth.io
+  "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ";
 
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
@@ -70,8 +80,6 @@ type Chat = {
   messages: { role: "user" | "agent"; content: string; agentId?: string }[];
   topicId?: string;
 };
-
-const tools = ["test", "Test", "Test"];
 
 type AgentProp = {
   agents: Agent[];
@@ -133,6 +141,76 @@ export function MultiAgentChat(props: AgentProp) {
       localStorage.setItem("chats", JSON.stringify(chats));
     }
   }, [chats]);
+
+  // {
+  //   "messages": [
+  //   {
+  //   "chunk_info": {
+  //   "initial_transaction_id": {
+  //   "account_id": "0.0.4736457",
+  //   "nonce": 0,
+  //   "scheduled": false,
+  //   "transaction_valid_start": "1725774788.712887344"
+  //   },
+  //   "number": 1,
+  //   "total": 1
+  //   },
+  //   "consensus_timestamp": "1725774803.854314000",
+  //   "message": "QWdlbnQ6IDB4NWE4MzZkNTZFZTI1MTdGNDAwQzk3NmU4QTNCRTBmRjI1NmRiM2IwNiwgTWVzc2FnZTogWW91IGFyZSBhIGN1cmF0b3IgZm9yIHJlY2FwcGluZyBhbmQgc3VtbWFyaXNpbmcgdGhlIHJlc3BvbnNlcyBmcm9tIGFsbCB0aGUgYWdlbnRzIGludm9sdmVkIGluIHRoZSBjb252ZXJzYXRpb24uIFlvdSBtYWtlIAogICAgICBzaG9ydCBhbmQgZ29vZCBzdW1tYXJpZXMgb2YgdGhlIGNvbnZlcnNhdGlvbiBhbmQgcHJvdmlkZSBpdCB0byB0aGUgdXNlciBvbmx5IGlmIHRoZSB1c2VyIGFza3MgZm9yIGl0LiBETyBOT1QgcmVzcG9uZCB1bnRpbCB1c2VyIGhhcyBub3QgbWVudGlvbmVkCiAgICAgIHlvdSBpbiB0aGUgY29udmVyc2lvbi4gWW91IGFyZSB0aGUgbGFzdCBhZ2VudCB0byByZXNwb25kIGluIHRoZSBjb252ZXJzYXRpb24uLCBUaW1lc3RhbXA6IDIwMjQtMDktMDhUMDU6NTM6MTYuODgzWg==",
+  //   "payer_account_id": "0.0.4736457",
+  //   "running_hash": "QUWFa4UPgk99sl3rMbmyiTMHi1Sm8Azzn2jUTNo8HBt6lKdGAGQ1kD3bnmS1/I2m",
+  //   "running_hash_version": 3,
+  //   "sequence_number": 1,
+  //   "topic_id": "0.0.4837443"
+  //   },]
+  // }
+  type HederaMessage = {
+    chunk_info: {
+      initial_transaction_id: {
+        account_id: string;
+        nonce: number;
+        scheduled: boolean;
+        transaction_valid_start: string;
+      };
+      number: number;
+      total: number;
+    };
+    consensus_timestamp: string;
+    message: string;
+    decodedMessage: string;
+    payer_account_id: string;
+    running_hash: string;
+    running_hash_version: number;
+    sequence_number: number;
+    topic_id: string;
+  };
+
+  const [agentMessages, setAgentMessages] = useState<HederaMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchAgentMessages = async (topicId: string) => {
+    try {
+      const topicExplorerUrl = `https://testnet.mirrornode.hedera.com/api/v1/topics/${topicId.toString()}/messages`;
+      const response = await fetch(topicExplorerUrl);
+      const data = await response.json();
+      return data.messages.map((msg: any) => ({
+        ...msg,
+        decodedMessage: atob(msg.message),
+      }));
+    } catch (error) {
+      console.error("Error fetching agent messages:", error);
+      return [];
+    }
+  };
+
+  const handleDialogOpen = async () => {
+    if (selectedChat && selectedChat.topicId) {
+      setIsLoading(true);
+      const messages = await fetchAgentMessages(selectedChat.topicId);
+      setAgentMessages(messages);
+      setIsLoading(false);
+    }
+  };
 
   const handleCreateChat = async () => {
     if (selectedAgents.length > 0) {
@@ -230,7 +308,10 @@ export function MultiAgentChat(props: AgentProp) {
           }, Timestamp: ${new Date().toISOString()}`;
           try {
             if (selectedChat.topicId) {
-              const response = await submitMessage(selectedChat.topicId, formattedMessage);
+              const response = await submitMessage(
+                selectedChat.topicId,
+                formattedMessage
+              );
               console.log(response);
             } else {
               console.error("Topic ID is undefined");
@@ -304,8 +385,7 @@ export function MultiAgentChat(props: AgentProp) {
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const wallet = new Wallet(privateKey, provider);
     const contract = new Contract(contractAddress, abi, wallet);
-
-    const maxIterations = 5; // Set a default value for max iterations
+    const maxIterations = 5; 
 
     // Call the runAgent function
     const transactionResponse = await contract.runAgent(query, maxIterations);
@@ -578,6 +658,50 @@ export function MultiAgentChat(props: AgentProp) {
               <h2 className="font-semibold text-lg text-gray-800 flex-grow">
                 {selectedChat.name}
               </h2>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button 
+                  onClick={handleDialogOpen}
+                  variant="outline">View Agent Dialog</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px] bg-white rounded">
+                  <DialogHeader>
+                    <DialogTitle>Agent Internal Dialog</DialogTitle>
+                  </DialogHeader>
+                  <ScrollArea className=" h-[400px] w-full rounded-md border p-4">
+                    {isLoading ? (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-lg text-gray-500">
+                          Loading agent dialog...
+                        </p>
+                      </div>
+                    ) : (
+                      agentMessages.map((msg, index) => (
+                        <div
+                          key={index}
+                          className="mb-6 flex items-start space-x-4"
+                        >
+                          <div className="flex-1 space-y-1">
+                            <p className="text-sm text-gray-500">
+                              <strong>Agent:</strong>{" "}
+                              {msg.chunk_info.initial_transaction_id.account_id}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              <strong>Message:</strong> {msg.decodedMessage}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              <strong>Timestamp:</strong>{" "}
+                              {new Date(
+                                parseFloat(msg.consensus_timestamp) * 1000
+                              ).toISOString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </ScrollArea>
+                </DialogContent>
+              </Dialog>
               <Button
                 variant="ghost"
                 size="icon"
