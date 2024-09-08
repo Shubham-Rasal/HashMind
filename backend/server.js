@@ -12,7 +12,7 @@ import {
 import { LitNetwork } from "@lit-protocol/constants";
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ path: './.env' });
 
 const app = express();
 app.use(express.json());
