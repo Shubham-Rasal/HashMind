@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/dialog";
 import localFont from "next/font/local";
 import Link from "next/link";
+import { decrypt } from "@/utils/litFunctions";
 
 const clientId =
   "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ";
