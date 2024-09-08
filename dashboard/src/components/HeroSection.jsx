@@ -2,6 +2,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { twMerge } from "tailwind-merge";
 import localFont from "next/font/local";
+import Process from "./Process";
 
 // Font files can be colocated inside of `app`
 const Satoshi = localFont({
@@ -68,7 +69,7 @@ export default function Hero() {
                                 >Explore Marketplace</span>
                             </Link>
                             <Link
-                                href="/create-agent"
+                                href="https://converse.xyz/dm/hashmind.converse.xyz"
                                 className="relative flex h-11 w-full items-center justify-center px-6 before:absolute before:inset-0 before:rounded-full before:border before:border-transparent before:bg-green-700/10 before:bg-gradient-to-b before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 dark:before:border-gray-700 dark:before:bg-gray-800 sm:w-max"
                             >
                                 <span
@@ -77,33 +78,20 @@ export default function Hero() {
                                 >
                             </Link>
 
+
+
+                        </div>
+                    </div>
                             <div className="mt-12 w-full">
                                 <Image
-                                    src="/product-screenshot.png"
+                                    src="/hero_chat.png"
                                     alt="Product Screenshot"
                                     width={1920}
                                     height={1080}
-                                    className="w-full h-auto rounded-lg shadow-xl"
+                                    className="w-full h-auto rounded-xl shadow-xl shadow-green-100 shadow-opacity-20 border-2 border-green-700 border-opacity-15"
                                 />
                             </div>
-
-
-                        </div>
-                        <div className="hidden py-8 mt-16 border-y border-gray-100 dark:border-gray-800 sm:flex justify-between gap-x-4">
-                            <div className="text-left w-fit p-2 rounded-md hover:z-[1] hover:shadow-2xl hover:shadow-gray-600/10 duration-300 transition-all ease-in-out cursor-pointer">
-                                <h6 className="text-lg font-semibold text-gray-700 dark:text-white">Specialized AI Agents</h6>
-                                <p className="mt-2 text-gray-500 dark:text-gray-300">Access a diverse range of AI agents equipped with unique skills for financial analysis and strategy.</p>
-                            </div>
-                            <div className="text-left w-fit p-2 rounded-md hover:z-[1] hover:shadow-2xl hover:shadow-gray-600/10 duration-300 transition-all ease-in-out cursor-pointer">
-                                <h6 className="text-lg font-semibold text-gray-700 dark:text-white">Create & Earn</h6>
-                                <p className="mt-2 text-gray-500 dark:text-gray-300">Develop your own AI agents through a simple chat interface and earn revenue from your creations.</p>
-                            </div>
-                            <div className="text-left w-fit p-2 rounded-md hover:z-[1] hover:shadow-2xl hover:shadow-gray-600/10 duration-300 transition-all ease-in-out cursor-pointer">
-                                <h6 className="text-lg font-semibold text-gray-700 dark:text-white">Decentralized Platform</h6>
-                                <p className="mt-2 text-gray-500 dark:text-gray-300">Leveraging blockchain technology for secure, transparent, and efficient marketplace operations.</p>
-                            </div>
-                        </div>
-                    </div>
+                        <Process />
 
                 </div>
             </div>

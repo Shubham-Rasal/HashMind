@@ -1,111 +1,96 @@
-export default function Features() {
-  return (
-    <section id="features" className="dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-6 md:px-12 xl:px-6">
-        <div className="md:w-2/3 lg:w-1/2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="w-6 h-6 text-green-700"
-          >
-            <path
-              fillRule="evenodd"
-              d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z"
-              clipRule="evenodd"
-            />
-          </svg>
+import { twMerge } from "tailwind-merge";
+import localFont from "next/font/local";
+import Image from "next/image";
+import { Sparkles } from "lucide-react";
+import Link from "next/link";
 
-          <h2 className="my-8 text-2xl font-bold text-gray-700 dark:text-white md:text-4xl">
-            Powered by Advanced Technologies
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300">
+const Satoshi = localFont({
+  src: [{ path: "../../fonts/Satoshi-Bold.woff2" }],
+  display: "swap",
+});
+
+const Instrument = localFont({
+  src: [{ path: "../../fonts/InstrumentSerif-Italic.ttf" }],
+  display: "swap",
+});
+
+export default function Features() {
+  const technologies = [
+    {
+      icon: "/galadriel.png",
+      title: "Galadriel",
+      description: "Galadriel is a Layer 1 blockchain specifically designed for AI applications, allowing developers to build decentralized AI solutions using familiar Solidity smart contracts, effectively bridging the gap between blockchain and artificial intelligence.",
+      url: "https://galadriel.com/"
+    },
+    {
+      icon: "/xmtp.png",
+      title: "XMTP",
+      description: "Our platform leverages XMTP for secure, decentralized messaging, enabling us to process agent creation prompts and interact with smart contracts to deploy and manage AI agents on the blockchain, ensuring privacy and reliability throughout the process.",
+      url: "https://xmtp.org/"
+    },
+    {
+      icon: "/web3auth.png",
+      title: "Web3Auth",
+      description: "Web3Auth integration provides a seamless onboarding experience, allowing users to authenticate using familiar Web2 providers while securely connecting to blockchain wallets. This approach significantly reduces entry barriers for new users while maintaining the security benefits of Web3 technology.",
+      url: "https://web3auth.io/"
+    },
+    {
+      icon: "/hedera.png",
+      title: "Hedera",
+      description: "Hedera enables secure and efficient internal dialogue for AI agents through its distributed consensus service, allowing for rapid and reliable decision-making in decentralized environments.",
+      url: "https://hedera.com/"
+    },
+    {
+      icon: "/lit.png",
+      title: "Lit Protocol",
+      description: "Lit Protocol offers decentralized encryption and access control mechanisms, ensuring robust protection for user privacy and sensitive data in blockchain-based applications, enhancing overall security and trust.",
+      url: "https://litprotocol.com/"
+    }
+  ];
+
+  return (
+    <div className={twMerge(
+      Satoshi.className,
+      "min-h-screen text-black flex items-center justify-center p-4 relative overflow-hidden"
+    )}>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-green-200 via-white to-white"></div>
+      <div className="relative z-10 max-w-6xl w-full space-y-8">
+        <div className="text-center space-y-4">
+        <div className="inline-block bg-gray-800 rounded-full px-4 py-2 mb-6">
+                    <span className="text-sm font-medium text-white">POWERED BY ADVANCED TECHNOLOGIES</span>
+                </div>
+
+          {/* <div className="inline-flex items-center bg-white/10 rounded-full px-3 py-1 text-sm">
+            <Sparkles className="w-4 h-4 mr-2" />
+            POWERED BY ADVANCED TECHNOLOGIES
+          </div> */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold">
+            Our <span className={Instrument.className}>Technology</span> Stack
+          </h1>
+          <p className="text-gray-400 max-w-2xl mx-auto">
             Our platform leverages cutting-edge technologies to provide a secure, efficient, and user-friendly experience.
           </p>
         </div>
-        <div className="mt-16 mb-16 grid divide-x divide-y divide-gray-100 dark:divide-gray-700 overflow-hidden rounded-3xl border border-gray-100 dark:border-gray-700 sm:grid-cols-2 lg:grid-cols-4 lg:divide-y-0 xl:grid-cols-4">
-          <div className="group relative bg-white dark:bg-gray-800 transition hover:z-[1] hover:shadow-2xl hover:shadow-gray-600/10">
-            <div className="relative space-y-8 py-12 p-8">
-              <img
-                src="/hedera-logo.svg"
-                className="w-12"
-                width="512"
-                height="512"
-                alt="hedera icon"
-              />
-
-              <div className="space-y-2">
-                <h5 className="text-xl font-semibold text-gray-700 dark:text-white transition group-hover:text-green-700">
-                  Hedera
-                </h5>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Leveraging Hedera's fast, fair, and secure public network for decentralized applications and micropayments.
-                </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {technologies.map((tech, index) => (
+            <Link href={tech.url} key={index} target="_blank" rel="noopener noreferrer" className="flex">
+              <div className="bg-black-900/50 border-2 border-black/10 rounded-xl hover:bg-white/10 transition-colors p-6 space-y-4 cursor-pointer flex flex-col h-full">
+                <div className="flex justify-center flex-shrink-0">
+                  <Image
+                    src={tech.icon}
+                    alt={tech.title}
+                    width={64}
+                    height={64}
+                    className="rounded-full object-cover mb-4"
+                  />
+                </div>
+                <h2 className="text-xl font-semibold text-center flex-shrink-0">{tech.title}</h2>
+                <p className="text-sm text-gray-500 text-center flex-grow">{tech.description}</p>
               </div>
-            </div>
-          </div>
-          <div className="group relative bg-white dark:bg-gray-800 transition hover:z-[1] hover:shadow-2xl hover:shadow-gray-600/10">
-            <div className="relative space-y-8 py-12 p-8">
-              <img
-                src="/galadriel-logo.svg"
-                className="w-12"
-                width="512"
-                height="512"
-                alt="galadriel icon"
-              />
-
-              <div className="space-y-2">
-                <h5 className="text-xl font-semibold text-gray-700 dark:text-white transition group-hover:text-green-700">
-                  Galadriel
-                </h5>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Utilizing Galadriel for enhanced privacy and security in our decentralized marketplace.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="group relative bg-white dark:bg-gray-800 transition hover:z-[1] hover:shadow-2xl hover:shadow-gray-600/10">
-            <div className="relative space-y-8 py-12 p-8">
-              <img
-                src="/lit-protocol-logo.svg"
-                className="w-12"
-                width="512"
-                height="512"
-                alt="lit protocol icon"
-              />
-
-              <div className="space-y-2">
-                <h5 className="text-xl font-semibold text-gray-700 dark:text-white transition group-hover:text-green-700">
-                  Lit Protocol
-                </h5>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Implementing Lit Protocol for decentralized access control and encryption in our platform.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="group relative bg-white dark:bg-gray-800 transition hover:z-[1] hover:shadow-2xl hover:shadow-gray-600/10">
-            <div className="relative space-y-8 py-12 p-8">
-              <img
-                src="/xmtp-logo.svg"
-                className="w-12"
-                width="512"
-                height="512"
-                alt="xmtp icon"
-              />
-
-              <div className="space-y-2">
-                <h5 className="text-xl font-semibold text-gray-700 dark:text-white transition group-hover:text-green-700">
-                  XMTP
-                </h5>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Using XMTP for secure, decentralized communication between users and AI agents on our platform.
-                </p>
-              </div>
-            </div>
-          </div>
+            </Link>
+          ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 }
