@@ -56,9 +56,9 @@ export default function Hero() {
                         )}
 
                         >AI Agent Marketplace</span></h1>
-                        <h2 className="text-gray-700 dark:text-gray-300 font-semibold text-2xl md:text-3xl xl:text-4xl mt-4">Crowd-Sourced Finance Experts at Your Fingertips</h2>
+                        <h2 className="text-gray-700 dark:text-gray-300 font-semibold text-2xl md:text-3xl xl:text-4xl mt-4">Crowd-Sourced Experts at Your Fingertips</h2>
                         <p className="mt-8 text-gray-700 dark:text-gray-300">
-                            Why rely on a single AI when you can have an army of specialized agents? Discover, create, and leverage AI agents for all things finance.
+                            Why rely on a single AI when you can have an army of specialized agents? Discover, create, and leverage AI agents for all things.
                         </p>
                         <div className="mt-16 flex flex-wrap justify-center gap-y-4 gap-x-6">
                             <Link
