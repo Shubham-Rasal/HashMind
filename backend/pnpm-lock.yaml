@@ -17,9 +17,6 @@ dependencies:
   cors:
     specifier: ^2.8.5
     version: 2.8.5
-  crypto:
-    specifier: ^1.0.1
-    version: 1.0.1
   dotenv:
     specifier: ^16.4.5
     version: 16.4.5

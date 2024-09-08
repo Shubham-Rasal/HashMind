@@ -33,6 +33,7 @@ import { Web3Auth } from "@web3auth/modal";
 import { createTopic, submitMessage } from "@/app/actions/hedera-consensus-service";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { UserProfileDialog } from "./user-profile-dialog";
+import { twMerge } from "tailwind-merge";
 import {
   Dialog,
   DialogContent,
@@ -42,7 +43,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { decrypt } from "@/utils/litFunctions";
+import localFont from "next/font/local";
+import Link from "next/link";
+
 const clientId =
   "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ";
 
@@ -89,6 +92,11 @@ interface Message {
   role: string;
   content: string;
 }
+
+const Instrument = localFont({
+  src: [{ path: "../../fonts/InstrumentSerif-Italic.ttf" }],
+  display: "swap",
+});
 
 export function MultiAgentChat(props: AgentProp) {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -383,7 +391,7 @@ export function MultiAgentChat(props: AgentProp) {
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const wallet = new Wallet(privateKey, provider);
     const contract = new Contract(contractAddress, abi, wallet);
-    const maxIterations = 5; 
+    const maxIterations = 5;
 
     // Call the runAgent function
     const transactionResponse = await contract.runAgent(query, maxIterations);
@@ -481,12 +489,16 @@ export function MultiAgentChat(props: AgentProp) {
   };
 
   return (
-    <div className="grid grid-cols-12 h-screen bg-gray-100">
+    <div className="grid grid-cols-12 h-screen bg-green-700/10">
       {/* Sidebar */}
-      <div className="col-span-3 bg-white shadow-lg flex flex-col h-screen overflow-hidden sticky top-0">
-        <div className="p-6 font-bold text-xl text-gray-900 border-b border-gray-200">
-          Multi-Agent Chat
-        </div>
+      <div className="col-span-3 bg-slate-100 shadow-lg flex flex-col h-screen overflow-hidden sticky top-0">
+        <Link href="/" className="flex items-center mt-4 mx-auto">
+          <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">#<span className={twMerge(
+            Instrument.className,
+            "text-green-700 dark:text-green-400",
+
+          )}>Mind</span></span>
+        </Link>
         <Tabs
           value={activeTab}
           onValueChange={(value) =>
@@ -501,7 +513,7 @@ export function MultiAgentChat(props: AgentProp) {
           <TabsContent value="chats" className="flex flex-col overflow-hidden">
             <div className="p-4 flex flex-col">
               <Button
-                className="w-fit mb-4 rounded"
+                className="w-full border-none mb-4 rounded bg-green-700 text-white hover:bg-green-700/90 hover:text-white"
                 variant="outline"
                 onClick={() => setActiveTab("marketplace")}
               >
@@ -512,7 +524,7 @@ export function MultiAgentChat(props: AgentProp) {
                   <Button
                     key={chat.id}
                     variant="ghost"
-                    className="justify-start mb-1 font-normal border border-gray-200 rounded-lg p-2 w-full"
+                    className="justify-start mb-1 font-normal border border-green-700 rounded-lg p-2 w-full"
                     onClick={() => setSelectedChat(chat)}
                   >
                     <MessageSquare className="mr-2 h-4 w-4 flex-shrink-0" />
@@ -549,7 +561,7 @@ export function MultiAgentChat(props: AgentProp) {
                   <p className="text-sm text-gray-500">{userProfile ? userProfile.email : "Email"}</p>
                   <UserProfileDialog
                     triggerButton={(
-                      <Button className="mt-2 bg-black text-white hover:text-black">Edit global prompts</Button>
+                      <Button className="mt-2 bg-green-700 text-white hover:text-green-700">Edit Profile</Button>
                     )}
                   />
                 </div>
@@ -585,7 +597,7 @@ export function MultiAgentChat(props: AgentProp) {
       </div>
 
       {/* Main Area */}
-      <div className="col-span-9 flex flex-col">
+      <div className="col-span-9 flex flex-col overflow-y-auto">
         {activeTab === "marketplace" ? (
           <div className="flex-grow overflow-auto h-screen">
             <div className="p-6">
@@ -594,7 +606,7 @@ export function MultiAgentChat(props: AgentProp) {
                 {props.agents.map((agent: Agent) => (
                   <Card
                     key={agent.address}
-                    className="overflow-hidden shadow-md rounded"
+                    className="overflow-hidden shadow-md rounded-md bg-white"
                   >
                     <CardHeader className="p-4">
                       <div className="flex space-y-2 items-center space-x-4">
@@ -667,9 +679,9 @@ export function MultiAgentChat(props: AgentProp) {
               </h2>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button 
-                  onClick={handleDialogOpen}
-                  variant="outline">View Agent Dialog</Button>
+                  <Button
+                    onClick={handleDialogOpen}
+                    variant="outline">View Agent Dialog</Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[500px] bg-white rounded">
                   <DialogHeader>
@@ -726,12 +738,12 @@ export function MultiAgentChat(props: AgentProp) {
                 >
                   <div
                     className={`inline-block p-3 rounded-xl ${message.role === "user"
-                      ? "bg-slate-600 text-white"
-                      : "bg-gray-100 text-gray-800"
+                      ? "bg-green-700 text-white rounded-br-none"
+                      : "bg-gray-100 text-gray-800 rounded-bl-none"
                       }`}
                   >
                     {message.role === "agent" && (
-                      <div className="font-semibold text-sm mb-1 text-gray-600">
+                      <div className="font-semibold text-sm mb-1 text-green-700">
                         {
                           selectedChat.agents.find(
                             (a) => a.address === message.agentId
@@ -753,7 +765,7 @@ export function MultiAgentChat(props: AgentProp) {
                   onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                   className="flex-grow"
                 />
-                <Button onClick={handleSendMessage}>
+                <Button onClick={handleSendMessage} className="bg-green-700/30 text-black hover:bg-green-700 hover:text-white">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
