@@ -11,11 +11,17 @@ import {
 } from "@lit-protocol/auth-helpers"
 import { LitNetwork } from "@lit-protocol/constants";
 import dotenv from 'dotenv';
+import cors from 'cors';
+const corsOptions = {
+    origin: 'http://localhost:3000', // Adjust this to your frontend's origin
+    optionsSuccessStatus: 200
+};
 
 dotenv.config({ path: './.env' });
 
 const app = express();
 app.use(express.json());
+app.use(cors(corsOptions));
 
 const port = process.env.PORT || 8000;
 
@@ -24,6 +30,7 @@ const client = new LitNodeClient({
     debug: true,
 });
 
+// console.log(process.env.PRIVATE_KEY)
 const walletWithCapacityCredit = new Wallet(
     process.env.PRIVATE_KEY
 );

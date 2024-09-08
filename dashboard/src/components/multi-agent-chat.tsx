@@ -31,15 +31,8 @@ import { CHAIN_NAMESPACES, IProvider, WEB3AUTH_NETWORK } from "@web3auth/base";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { Web3Auth } from "@web3auth/modal";
 import { createTopic, submitMessage } from "@/app/actions/hedera-consensus-service";
-import { Client, PrivateKey } from "@hashgraph/sdk";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { UserProfileDialog } from "./user-profile-dialog";
-
-
-import {
-  createTopic,
-  submitMessage,
-} from "@/app/actions/hedera-consensus-service";
 import {
   Dialog,
   DialogContent,
@@ -49,6 +42,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { decrypt } from "@/utils/litFunctions";
 const clientId =
   "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ";
 
@@ -63,7 +57,7 @@ const chainConfig = {
 // const chainConfig = {
 //   chainNamespace: CHAIN_NAMESPACES.EIP155,
 //   chainId: "0x1",
-//   tickerName: "Ethereum Mainnet",
+//   tickerName: "Ethereum Mainnet",`
 //   ticker: "ETH",
 //   blockExplorerUrl: "https://etherscan.io",
 //   rpcTarget: "https://rpc.ankr.com/eth",
@@ -166,28 +160,7 @@ export function MultiAgentChat(props: AgentProp) {
     }
   }, [chats]);
 
-  // {
-  //   "messages": [
-  //   {
-  //   "chunk_info": {
-  //   "initial_transaction_id": {
-  //   "account_id": "0.0.4736457",
-  //   "nonce": 0,
-  //   "scheduled": false,
-  //   "transaction_valid_start": "1725774788.712887344"
-  //   },
-  //   "number": 1,
-  //   "total": 1
-  //   },
-  //   "consensus_timestamp": "1725774803.854314000",
-  //   "message": "QWdlbnQ6IDB4NWE4MzZkNTZFZTI1MTdGNDAwQzk3NmU4QTNCRTBmRjI1NmRiM2IwNiwgTWVzc2FnZTogWW91IGFyZSBhIGN1cmF0b3IgZm9yIHJlY2FwcGluZyBhbmQgc3VtbWFyaXNpbmcgdGhlIHJlc3BvbnNlcyBmcm9tIGFsbCB0aGUgYWdlbnRzIGludm9sdmVkIGluIHRoZSBjb252ZXJzYXRpb24uIFlvdSBtYWtlIAogICAgICBzaG9ydCBhbmQgZ29vZCBzdW1tYXJpZXMgb2YgdGhlIGNvbnZlcnNhdGlvbiBhbmQgcHJvdmlkZSBpdCB0byB0aGUgdXNlciBvbmx5IGlmIHRoZSB1c2VyIGFza3MgZm9yIGl0LiBETyBOT1QgcmVzcG9uZCB1bnRpbCB1c2VyIGhhcyBub3QgbWVudGlvbmVkCiAgICAgIHlvdSBpbiB0aGUgY29udmVyc2lvbi4gWW91IGFyZSB0aGUgbGFzdCBhZ2VudCB0byByZXNwb25kIGluIHRoZSBjb252ZXJzYXRpb24uLCBUaW1lc3RhbXA6IDIwMjQtMDktMDhUMDU6NTM6MTYuODgzWg==",
-  //   "payer_account_id": "0.0.4736457",
-  //   "running_hash": "QUWFa4UPgk99sl3rMbmyiTMHi1Sm8Azzn2jUTNo8HBt6lKdGAGQ1kD3bnmS1/I2m",
-  //   "running_hash_version": 3,
-  //   "sequence_number": 1,
-  //   "topic_id": "0.0.4837443"
-  //   },]
-  // }
+
   type HederaMessage = {
     chunk_info: {
       initial_transaction_id: {
@@ -297,6 +270,9 @@ export function MultiAgentChat(props: AgentProp) {
       // Call each agent and get their responses
       let allAgentMessages: Message[] = [];
 
+      const userPrompts = await decrypt();
+      console.log(userPrompts);   
+
       for (const agent of selectedChat.agents) {
         // Format the chat history to provide context to the agent
         const chatHistory = selectedChat.messages
@@ -309,8 +285,8 @@ export function MultiAgentChat(props: AgentProp) {
           })
           .join("\n");
 
-        // Append the user's name to the input for personalized results
-        const personalizedInput = `${input} - ${userProfile.name}`;
+        // Append the user's name and user prompts to the input for personalized results
+        const personalizedInput = `${input} - ${userProfile.name} - ${userPrompts}`;
 
         // Call the agent with the formatted chat history and personalized input
         const agentResponses = await callAgent(
@@ -573,7 +549,7 @@ export function MultiAgentChat(props: AgentProp) {
                   <p className="text-sm text-gray-500">{userProfile ? userProfile.email : "Email"}</p>
                   <UserProfileDialog
                     triggerButton={(
-                      <Button className="mt-2 bg-black text-white hover:text-black">Edit Profile</Button>
+                      <Button className="mt-2 bg-black text-white hover:text-black">Edit global prompts</Button>
                     )}
                   />
                 </div>
