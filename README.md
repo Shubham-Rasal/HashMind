@@ -1,5 +1,10 @@
 # HashMind
 
+![WhatsApp Image 2024-09-08 at 17 31 23_eff64aa5](https://github.com/user-attachments/assets/c33e16d5-7ed0-41c6-b446-6d675595d78e)
+
+![Screenshot 2024-09-08 172436 1](https://github.com/user-attachments/assets/dc5dd013-b661-46a2-b523-bcf537ae0866)
+
+
 ## Table of Contents 
 
 - [Table of Contents](#table-of-contents)
@@ -42,6 +47,7 @@ Here’s how we have used various technologies to make this project a reality.
 ![Nextjs](https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Expressjs](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
+![Nodejs](https://img.shields.io/badge/node.js-%2343853D.svg?style=for-the-badge&logo=node-dot-js&logoColor=white)
 
 ### XMTP Chat Interface
 
