@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/dialog";
 import localFont from "next/font/local";
 import Link from "next/link";
+import { decrypt } from "@/utils/litFunctions";
 
 const clientId =
   "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ";
@@ -278,8 +279,13 @@ export function MultiAgentChat(props: AgentProp) {
       // Call each agent and get their responses
       let allAgentMessages: Message[] = [];
 
-      const userPrompts = await decrypt();
-      console.log(userPrompts);   
+      let userPrompts = "answers to user prompts";
+      try {
+        userPrompts = await decrypt();
+        console.log(userPrompts);
+      } catch (error) {
+        console.error("Error decrypting user prompts:", error);
+      }
 
       for (const agent of selectedChat.agents) {
         // Format the chat history to provide context to the agent
