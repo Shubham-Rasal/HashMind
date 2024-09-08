@@ -208,17 +208,11 @@ run(async (context) => {
             }
             else {
                 await redisClient.hSet(sender.address, "tools", validUserTools.join(','));
-                message = "Thank you! Now, what's the primary goal or task you want your AI agent to accomplish?";
+                message = "Understood. Lastly, please provide a system-level prompt for your AI agent. This will guide its behavior and responses.";
                 inMemoryCacheStep.set(sender.address, 5);
             }
             break;
         case 5:
-            userResponse = text;
-            await redisClient.hSet(sender.address, "goal", userResponse);
-            message = "Understood. Lastly, please provide a system-level prompt for your AI agent. This will guide its behavior and responses.";
-            inMemoryCacheStep.set(sender.address, 6);
-            break;
-        case 6:
             userResponse = text;
             await redisClient.hSet(sender.address, "system_prompt", userResponse);
             // Compile all user responses
@@ -231,22 +225,23 @@ run(async (context) => {
                 compiledResponses.name, compiledResponses.description);
                 console.log(tx);
                 console.log("Smart contract called successfully");
+                message = "Thank you for providing all the information! Your AI agent configuration is complete and has been sent to the blockchain. Here's a summary of your choices:\n\n" +
+                    `Name: ${compiledResponses.name}\n` +
+                    `Description: ${compiledResponses.description}\n` +
+                    `Topic: ${compiledResponses.topic}\n` +
+                    `Tools: ${compiledResponses.tools}\n` +
+                    `System Prompt: ${compiledResponses.system_prompt}\n` +
+                    `Creator Address: ${sender.address}\n\n` +
+                    `Transaction Hash: ${tx.hash}\n\n`;
+                "Type 'reset' if you want to start over, or 'stop' to end the conversation.";
             }
             catch (error) {
                 console.error("Error calling smart contract:", error);
+                message = "An error occurred while creating your AI agent. Please try again later.";
             }
-            message = "Thank you for providing all the information! Your AI agent configuration is complete and has been sent to the blockchain. Here's a summary of your choices:\n\n" +
-                `Name: ${compiledResponses.name}\n` +
-                `Description: ${compiledResponses.description}\n` +
-                `Topic: ${compiledResponses.topic}\n` +
-                `Tools: ${compiledResponses.tools}\n` +
-                `Goal: ${compiledResponses.goal}\n` +
-                `System Prompt: ${compiledResponses.system_prompt}\n` +
-                `Creator Address: ${sender.address}\n\n` +
-                "Type 'reset' if you want to start over, or 'stop' to end the conversation.";
-            inMemoryCacheStep.set(sender.address, 7);
+            inMemoryCacheStep.set(sender.address, 6);
             break;
-        case 7:
+        case 6:
             if (lowerContent === 'reset') {
                 inMemoryCacheStep.set(sender.address, 0);
                 await redisClient.del(sender.address);
