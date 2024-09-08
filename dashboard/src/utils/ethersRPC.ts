@@ -19,9 +19,9 @@ const getAccounts = async (provider: IProvider): Promise<any> => {
     const signer = await ethersProvider.getSigner();
 
     // Get user's Ethereum public address
-    const address = signer.getAddress();
-
-    return await address;
+    const address = await signer.getAddress();
+    console.log("Getting address: ", address);
+    return address;
   } catch (error) {
     return error;
   }

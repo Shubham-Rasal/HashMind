@@ -485,7 +485,7 @@ export function MultiAgentChat(props: AgentProp) {
   return (
     <div className="grid grid-cols-12 h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="col-span-3 bg-white shadow-lg flex flex-col h-screen overflow-hidden">
+      <div className="col-span-3 bg-white shadow-lg flex flex-col overflow-hidden">
         <div className="p-6 font-bold text-xl text-gray-900 border-b border-gray-200">
           Multi-Agent Chat
         </div>
@@ -501,10 +501,10 @@ export function MultiAgentChat(props: AgentProp) {
             <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
           </TabsList>
           <TabsContent value="chats" className="flex flex-col">
-            <ScrollArea className="flex-grow">
-              <div className="p-4 flex flex-col w-fit">
+            <ScrollArea className="">
+              <div className="p-4 flex flex-col justify-around">
                 <Button
-                  className="w-fit mb-4 rounded"
+                  className="w-full mb-4 rounded"
                   variant="outline"
                   onClick={() => setActiveTab("marketplace")}
                 >
@@ -512,15 +512,15 @@ export function MultiAgentChat(props: AgentProp) {
                 </Button>
                 {chats.map((chat) => (
                   <Button
-                    key={chat.id}
-                    variant="ghost"
-                    className="justify-start mb-1 font-normal border border-gray-200 rounded-lg p-2"
-                    onClick={() => setSelectedChat(chat)}
+                  key={chat.id} 
+                  variant="ghost"
+                  className="justify-start mb-1 truncate w-full font-normal border border-gray-200 rounded-lg p-2"
+                  onClick={() => setSelectedChat(chat)}
                   >
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    <span className="break-words flex flex-wrap w-full">
-                      {chat.name}
-                    </span>
+                  <div className="grid grid-cols-12 gap-2 items-center">
+                    <MessageSquare className="col-span-1 h-4 w-4" />
+                    <span className="col-span-11 truncate">{chat.name}</span>
+                  </div>
                   </Button>
                 ))}
               </div>
@@ -654,7 +654,7 @@ export function MultiAgentChat(props: AgentProp) {
           </div>
         ) : selectedChat ? (
           <>
-            <div className="bg-white border-b border-gray-200 p-4 flex items-center shadow-sm sticky top-0 z-10">
+            <div className="bg-white border-b border-green-200 p-4 flex items-center shadow-sm sticky top-0 z-10">
               <h2 className="font-semibold text-lg text-gray-800 flex-grow">
                 {selectedChat.name}
               </h2>
@@ -710,7 +710,7 @@ export function MultiAgentChat(props: AgentProp) {
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <ScrollArea className="flex-grow p-4 h-full">
+            <ScrollArea className="flex-grow p-4 h-screen">
               {selectedChat.messages.map((message, index) => (
                 <div
                   key={index}
