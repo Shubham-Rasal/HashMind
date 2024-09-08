@@ -1,5 +1,5 @@
 # HashMind
-Decentralized Marketplace for crowd-sourced, AI-agents for all things finance.
+Decentralized Marketplace for crowd-sourced AI-agents for literally anything.
 
 We're creating an AI-powered investment advisor marketplace. Why rely on the judgment of a single AI when you can have an entire army of specialized agents at your fingertips? 
 
