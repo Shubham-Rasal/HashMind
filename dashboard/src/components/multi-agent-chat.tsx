@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Contract, ethers, Wallet } from "ethers";
 import { abi } from "@/abis/Agent.sol/Agent.json";
 import { Button } from "@/components/ui/button";
+import ReactMarkdown from "react-markdown";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -29,6 +30,8 @@ import { Agent } from "@/app/dashboard/page";
 import { CHAIN_NAMESPACES, IProvider, WEB3AUTH_NETWORK } from "@web3auth/base";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { Web3Auth } from "@web3auth/modal";
+import { createTopic, submitMessage } from "@/app/actions/hedera-consensus-service";
+import { Client, PrivateKey } from "@hashgraph/sdk";
 
 const clientId =
   "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ"; // get from https://dashboard.web3auth.io
@@ -41,6 +44,14 @@ const chainConfig = {
   blockExplorerUrl: "https://explorer.galadriel.com",
   rpcTarget: "https://devnet.galadriel.com/",
 };
+// const chainConfig = {
+//   chainNamespace: CHAIN_NAMESPACES.EIP155,
+//   chainId: "0x1",
+//   tickerName: "Ethereum Mainnet",
+//   ticker: "ETH",
+//   blockExplorerUrl: "https://etherscan.io",
+//   rpcTarget: "https://rpc.ankr.com/eth",
+// };
 
 const privateKeyProvider = new EthereumPrivateKeyProvider({
   config: { chainConfig },
@@ -57,6 +68,7 @@ type Chat = {
   name: string;
   agents: Agent[];
   messages: { role: "user" | "agent"; content: string; agentId?: string }[];
+  topicId?: string;
 };
 
 const tools = ["test", "Test", "Test"];
@@ -80,7 +92,7 @@ export function MultiAgentChat(props: AgentProp) {
   const [provider, setProvider] = useState<IProvider | null>(null);
   const [userProfile, setUser] = useState<any>(null);
   const [balance, setBalance] = useState<string | null>(null);
-  const [accounts, setAccounts] = useState<string[] | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -93,6 +105,13 @@ export function MultiAgentChat(props: AgentProp) {
 
           setUser(user);
           setIsWalletConnected(true);
+        }
+
+        if (provider) {
+          const address = await RPC.getAccounts(provider);
+          setWalletAddress(address);
+          const balance = await RPC.getBalance(provider);
+          setBalance(balance);
         }
       } catch (error) {
         console.error(error);
@@ -115,18 +134,33 @@ export function MultiAgentChat(props: AgentProp) {
     }
   }, [chats]);
 
-  const handleCreateChat = () => {
+  const handleCreateChat = async () => {
     if (selectedAgents.length > 0) {
-      const newChat: Chat = {
-        id: Date.now().toString(),
-        name: `Chat with ${selectedAgents.map((a) => a.name).join(", ")}`,
-        agents: selectedAgents,
-        messages: [],
-      };
-      setChats([...chats, newChat]);
-      setSelectedChat(newChat);
-      setSelectedAgents([]);
-      setActiveTab("chats");
+      try {
+        // Initialize Hedera client
+
+        // Create a new topic
+        const { topicId } = await createTopic();
+        console.log(topicId);
+
+        // // Create a new chat with the topic ID
+        const newChat: Chat = {
+          id: Date.now().toString(),
+          name: `Chat with ${selectedAgents.map((a) => a.name).join(", ")}`,
+          agents: selectedAgents,
+          messages: [],
+          topicId: topicId ? topicId.toString() : "", // Add topicId to the chat object
+        };
+
+        console.log(newChat);
+
+        setChats([...chats, newChat]);
+        setSelectedChat(newChat);
+        setSelectedAgents([]);
+        setActiveTab("chats");
+      } catch (error) {
+        console.error("Error creating chat and topic:", error);
+      }
     }
   };
 
@@ -159,40 +193,84 @@ export function MultiAgentChat(props: AgentProp) {
       setInput("");
 
       // Call each agent and get their responses
+      let allAgentMessages: Message[] = [];
+
       for (const agent of selectedChat.agents) {
-        const agentResponses = await callAgent(agent, input);
-        const agentMessages = agentResponses.map((message) => ({
+        // Format the chat history to provide context to the agent
+        const chatHistory = selectedChat.messages
+          .map((message) => {
+            const agentName = selectedChat.agents.find(
+              (a) => a.address === message.agentId
+            )?.name;
+            return `${message.role === "user" ? "User" : agentName}: ${
+              message.content
+            }`;
+          })
+          .join("\n");
+
+        // Append the user's name to the input for personalized results
+        const personalizedInput = `${input} - ${userProfile.name}`;
+
+        // Call the agent with the formatted chat history and personalized input
+        const agentResponses = await callAgent(
+          agent,
+          `${chatHistory}\nUser: ${personalizedInput}`
+        );
+        const agentMessages = agentResponses.slice(-1).map((message) => ({
           role: "agent" as const,
           content: message.content,
           agentId: agent.address,
         }));
-        const updatedChatWithResponses = {
-          ...updatedChat,
-          messages: [...updatedChat.messages, ...agentMessages],
-        };
-        setChats(
-          chats.map((chat) =>
-            chat.id === selectedChat.id
-              ? {
-                  ...updatedChatWithResponses,
-                  messages: updatedChatWithResponses.messages.map(
-                    (message) => ({
-                      ...message,
-                      role: message.role as "user" | "agent",
-                    })
-                  ),
-                }
-              : chat
-          )
-        );
-        setSelectedChat({
-          ...updatedChatWithResponses,
-          messages: updatedChatWithResponses.messages.map((message) => ({
-            ...message,
-            role: message.role as "user" | "agent",
-          })),
-        });
+
+        // Format and submit all remaining messages except the last one to Hedera Consensus Service
+        for (let i = 0; i < agentResponses.length - 1; i++) {
+          const message = agentResponses[i];
+          const formattedMessage = `Agent: ${agent.address}, Message: ${
+            message.content
+          }, Timestamp: ${new Date().toISOString()}`;
+          try {
+            if (selectedChat.topicId) {
+              const response = await submitMessage(selectedChat.topicId, formattedMessage);
+              console.log(response);
+            } else {
+              console.error("Topic ID is undefined");
+            }
+          } catch (error) {
+            console.error(
+              "Error submitting message to Hedera Consensus Service:",
+              error
+            );
+          }
+        }
+
+        allAgentMessages = [...allAgentMessages, ...agentMessages];
       }
+
+      const updatedChatWithResponses = {
+        ...updatedChat,
+        messages: [...updatedChat.messages, ...allAgentMessages],
+      };
+
+      setChats(
+        chats.map((chat) =>
+          chat.id === selectedChat.id
+            ? {
+                ...updatedChatWithResponses,
+                messages: updatedChatWithResponses.messages.map((message) => ({
+                  ...message,
+                  role: message.role as "user" | "agent",
+                })),
+              }
+            : chat
+        )
+      );
+      setSelectedChat({
+        ...updatedChatWithResponses,
+        messages: updatedChatWithResponses.messages.map((message) => ({
+          ...message,
+          role: message.role as "user" | "agent",
+        })),
+      });
     }
   };
 
@@ -210,7 +288,9 @@ export function MultiAgentChat(props: AgentProp) {
 
   const handleCopyWalletAddress = () => {
     if (userProfile) {
-      navigator.clipboard.writeText(userProfile.walletAddress);
+      if (walletAddress) {
+        navigator.clipboard.writeText(walletAddress);
+      }
       // You might want to show a toast or some feedback here
     }
   };
@@ -259,6 +339,32 @@ export function MultiAgentChat(props: AgentProp) {
     return allMessages;
   };
 
+  const getAccounts = async () => {
+    if (!provider) {
+      console.log("provider not initialized yet");
+      return;
+    }
+    const address = await RPC.getAccounts(provider);
+    console.log("address", address);
+    setWalletAddress(address);
+  };
+
+  const getBalance = async () => {
+    if (!provider) {
+      console.log("provider not initialized yet");
+      return;
+    }
+    const balance = await RPC.getBalance(provider);
+    setBalance(balance);
+  };
+
+  useEffect(() => {
+    if (provider) {
+      getAccounts();
+      getBalance();
+    }
+  }, [provider]);
+
   const getAgentRunId = (
     receipt: ethers.TransactionReceipt,
     contract: ethers.Contract
@@ -297,10 +403,10 @@ export function MultiAgentChat(props: AgentProp) {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="grid grid-cols-12 h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 font-bold text-lg text-gray-800">
+      <div className="col-span-3 bg-white shadow-lg flex flex-col h-screen overflow-hidden">
+        <div className="p-6 font-bold text-xl text-gray-900 border-b border-gray-200">
           Multi-Agent Chat
         </div>
         <Tabs
@@ -310,15 +416,15 @@ export function MultiAgentChat(props: AgentProp) {
           }
           className="flex-grow flex flex-col"
         >
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-2 rounded">
             <TabsTrigger value="chats">Chats</TabsTrigger>
             <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
           </TabsList>
-          <TabsContent value="chats" className="flex-grow flex flex-col">
+          <TabsContent value="chats" className="flex flex-col">
             <ScrollArea className="flex-grow">
-              <div className="p-4">
+              <div className="p-4 flex flex-col w-fit">
                 <Button
-                  className="w-full mb-4"
+                  className="w-fit mb-4 rounded"
                   variant="outline"
                   onClick={() => setActiveTab("marketplace")}
                 >
@@ -328,11 +434,13 @@ export function MultiAgentChat(props: AgentProp) {
                   <Button
                     key={chat.id}
                     variant="ghost"
-                    className="w-full justify-start mb-1 font-normal"
+                    className="justify-start mb-1 font-normal border border-gray-200 rounded-lg p-2"
                     onClick={() => setSelectedChat(chat)}
                   >
                     <MessageSquare className="mr-2 h-4 w-4" />
-                    {chat.name}
+                    <span className="break-words flex flex-wrap w-full">
+                      {chat.name}
+                    </span>
                   </Button>
                 ))}
               </div>
@@ -341,57 +449,69 @@ export function MultiAgentChat(props: AgentProp) {
         </Tabs>
         <Separator />
         <div className="p-4">
-          <Button
-            variant={isWalletConnected ? "secondary" : "default"}
-            className="w-full"
-            onClick={handleConnectWallet}
-          >
-            <WalletIcon className="mr-2 h-4 w-4" />
-            {isWalletConnected && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div>
-                    <h3 className="font-semibold">{userProfile.name}</h3>
-                    <p className="text-sm text-gray-500">{userProfile.email}</p>
-                  </div>
-                </div>
-                <Button
-                  variant="link"
-                  className="text-blue-500 p-0 h-auto font-normal"
-                >
-                  View User Info
-                </Button>
-                <div className="mt-2 bg-white border border-gray-200 rounded flex items-center">
-                  <span className="text-xs text-gray-500 px-2 py-1 flex-grow truncate">
-                    {accounts ? accounts[0] : "No account connected"}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleCopyWalletAddress}
-                    className="h-8 w-8"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
+          {!isWalletConnected && (
+            <Button
+              variant="default"
+              className="w-full"
+              onClick={handleConnectWallet}
+            >
+              <WalletIcon className="mr-2 h-4 w-4" />
+              Connect Wallet
+            </Button>
+          )}
+          {isWalletConnected && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center space-x-4 mb-4">
+                <div>
+                  <h3 className="font-semibold">{userProfile.name}</h3>
+                  <p className="text-sm text-gray-500">{userProfile.email}</p>
                 </div>
               </div>
-            )}
-          </Button>
+              <div className="flex items-center space-x-4">
+                <div className="flex space-x-2 justify-between w-full">
+                  <h3 className="font-semibold">Balance:</h3>
+                  <h4 className="text-sm text-gray-500 font-medium text-center flex items-center">
+                    {balance} GAL
+                  </h4>
+                </div>
+              </div>
+              <div className="mt-2 bg-white border border-gray-200 rounded flex items-center">
+                <span className="text-xs text-gray-500 px-2 py-1 flex-grow truncate">
+                  {walletAddress
+                    ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(
+                        -4
+                      )}`
+                    : ""}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleCopyWalletAddress}
+                  className="h-8 w-8"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Main Area */}
-      <div className="flex-grow flex flex-col">
+      <div className="col-span-9 flex flex-col">
         {activeTab === "marketplace" ? (
-          <div className="flex-grow overflow-auto">
+          <div className="flex-grow overflow-auto h-screen">
             <div className="p-6">
               <h2 className="text-2xl font-bold mb-4">Agent Marketplace</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {props.agents.map((agent: Agent) => (
-                  <Card key={agent.address} className="overflow-hidden">
+                  <Card
+                    key={agent.address}
+                    className="overflow-hidden shadow-md rounded"
+                  >
                     <CardHeader className="p-4">
-                      <div className="flex items-center space-x-4">
-                        <div>
+                      <div className="flex space-y-2 items-center space-x-4">
+                        <div className="flex flex-col gap-2">
                           <CardTitle>{agent.name}</CardTitle>
                           <CardDescription>{agent.des}</CardDescription>
                         </div>
@@ -399,23 +519,30 @@ export function MultiAgentChat(props: AgentProp) {
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
                       <div className="mt-2">
-                        <p className="text-sm font-medium">Tools:</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {tools.map((tool, index) => (
-                            <span
-                              key={index}
-                              className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded"
-                            >
-                              {tool}
-                            </span>
-                          ))}
+                        <div className="flex flex-wrap mt-1 items-center justify-between">
+                          <p className="text-sm font-medium">Creator:</p>
+                          <span className="text-sm text-gray-500">
+                            {agent.creator.slice(0, 8)}...
+                            {agent.creator.slice(-4)}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              navigator.clipboard.writeText(agent.creator)
+                            }
+                            className="h-8 w-8"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
                     <CardFooter className="p-4">
                       <Button
                         variant="outline"
-                        className="w-full"
+                        className="w-full rounded"
+                        color="primary"
                         onClick={() =>
                           setSelectedAgents((prev) =>
                             prev.some((a) => a.address === agent.address)
@@ -434,7 +561,7 @@ export function MultiAgentChat(props: AgentProp) {
               </div>
             </div>
             {selectedAgents.length > 0 && (
-              <div className="fixed bottom-0 left-64 right-0 bg-white border-t border-gray-200 p-4">
+              <div className="fixed bottom-0 left-72 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
                 <div className="flex justify-between items-center">
                   <div className="text-sm text-gray-500">
                     {selectedAgents.length} agent
@@ -447,7 +574,7 @@ export function MultiAgentChat(props: AgentProp) {
           </div>
         ) : selectedChat ? (
           <>
-            <div className="bg-white border-b border-gray-200 p-4 flex items-center">
+            <div className="bg-white border-b border-gray-200 p-4 flex items-center shadow-sm sticky top-0 z-10">
               <h2 className="font-semibold text-lg text-gray-800 flex-grow">
                 {selectedChat.name}
               </h2>
@@ -459,7 +586,7 @@ export function MultiAgentChat(props: AgentProp) {
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <ScrollArea className="flex-grow p-4">
+            <ScrollArea className="flex-grow p-4 h-full">
               {selectedChat.messages.map((message, index) => (
                 <div
                   key={index}
@@ -468,14 +595,14 @@ export function MultiAgentChat(props: AgentProp) {
                   }`}
                 >
                   <div
-                    className={`inline-block p-3 rounded-lg ${
+                    className={`inline-block p-3 rounded-xl ${
                       message.role === "user"
-                        ? "bg-blue-500 text-white"
+                        ? "bg-slate-600 text-white"
                         : "bg-gray-100 text-gray-800"
                     }`}
                   >
                     {message.role === "agent" && (
-                      <div className="font-semibold text-xs mb-1 text-gray-600">
+                      <div className="font-semibold text-sm mb-1 text-gray-600">
                         {
                           selectedChat.agents.find(
                             (a) => a.address === message.agentId
@@ -483,12 +610,12 @@ export function MultiAgentChat(props: AgentProp) {
                         }
                       </div>
                     )}
-                    {message.content}
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
                   </div>
                 </div>
               ))}
             </ScrollArea>
-            <div className="p-4 bg-white border-t border-gray-200">
+            <div className="p-4 bg-white border-t bottom-0 sticky border-gray-200 shadow-sm">
               <div className="flex space-x-2">
                 <Input
                   placeholder="Type your message..."

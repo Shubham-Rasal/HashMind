@@ -9,7 +9,7 @@ import { Web3Auth } from "@web3auth/modal";
 import { useEffect, useState } from "react";
 
 import RPC from "@/utils/ethersRPC";
-import { MultiAgentChat } from "@/components/professional-multi-agent-chat";
+import { MultiAgentChat } from "@/components/multi-agent-chat";
 // import RPC from "./viemRPC";
 // import RPC from "./web3RPC";
 
