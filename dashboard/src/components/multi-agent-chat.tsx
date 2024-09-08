@@ -32,6 +32,9 @@ import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { Web3Auth } from "@web3auth/modal";
 import { createTopic, submitMessage } from "@/app/actions/hedera-consensus-service";
 import { Client, PrivateKey } from "@hashgraph/sdk";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { UserProfileDialog } from "./user-profile-dialog";
+
 
 const clientId =
   "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ"; // get from https://dashboard.web3auth.io
@@ -94,6 +97,8 @@ export function MultiAgentChat(props: AgentProp) {
   const [balance, setBalance] = useState<string | null>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
+  console.log(userProfile)
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -120,6 +125,22 @@ export function MultiAgentChat(props: AgentProp) {
 
     init();
   }, []);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!userProfile && web3auth.connected) {
+        try {
+          const user = await web3auth.getUserInfo();
+          setUser(user);
+          setIsWalletConnected(true);
+        } catch (error) {
+          console.error("Error fetching user info:", error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [userProfile, web3auth.connected]);
 
   useEffect(() => {
     const savedChats = localStorage.getItem("chats");
@@ -174,12 +195,12 @@ export function MultiAgentChat(props: AgentProp) {
         chats.map((chat) =>
           chat.id === selectedChat.id
             ? {
-                ...updatedChat,
-                messages: updatedChat.messages.map((message) => ({
-                  ...message,
-                  role: message.role as "user" | "agent",
-                })),
-              }
+              ...updatedChat,
+              messages: updatedChat.messages.map((message) => ({
+                ...message,
+                role: message.role as "user" | "agent",
+              })),
+            }
             : chat
         )
       );
@@ -202,9 +223,8 @@ export function MultiAgentChat(props: AgentProp) {
             const agentName = selectedChat.agents.find(
               (a) => a.address === message.agentId
             )?.name;
-            return `${message.role === "user" ? "User" : agentName}: ${
-              message.content
-            }`;
+            return `${message.role === "user" ? "User" : agentName}: ${message.content
+              }`;
           })
           .join("\n");
 
@@ -225,9 +245,8 @@ export function MultiAgentChat(props: AgentProp) {
         // Format and submit all remaining messages except the last one to Hedera Consensus Service
         for (let i = 0; i < agentResponses.length - 1; i++) {
           const message = agentResponses[i];
-          const formattedMessage = `Agent: ${agent.address}, Message: ${
-            message.content
-          }, Timestamp: ${new Date().toISOString()}`;
+          const formattedMessage = `Agent: ${agent.address}, Message: ${message.content
+            }, Timestamp: ${new Date().toISOString()}`;
           try {
             if (selectedChat.topicId) {
               const response = await submitMessage(selectedChat.topicId, formattedMessage);
@@ -255,12 +274,12 @@ export function MultiAgentChat(props: AgentProp) {
         chats.map((chat) =>
           chat.id === selectedChat.id
             ? {
-                ...updatedChatWithResponses,
-                messages: updatedChatWithResponses.messages.map((message) => ({
-                  ...message,
-                  role: message.role as "user" | "agent",
-                })),
-              }
+              ...updatedChatWithResponses,
+              messages: updatedChatWithResponses.messages.map((message) => ({
+                ...message,
+                role: message.role as "user" | "agent",
+              })),
+            }
             : chat
         )
       );
@@ -405,7 +424,7 @@ export function MultiAgentChat(props: AgentProp) {
   return (
     <div className="grid grid-cols-12 h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="col-span-3 bg-white shadow-lg flex flex-col h-screen overflow-hidden">
+      <div className="col-span-3 bg-white shadow-lg flex flex-col h-screen overflow-hidden sticky top-0">
         <div className="p-6 font-bold text-xl text-gray-900 border-b border-gray-200">
           Multi-Agent Chat
         </div>
@@ -420,31 +439,31 @@ export function MultiAgentChat(props: AgentProp) {
             <TabsTrigger value="chats">Chats</TabsTrigger>
             <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
           </TabsList>
-          <TabsContent value="chats" className="flex flex-col">
-            <ScrollArea className="flex-grow">
-              <div className="p-4 flex flex-col w-fit">
-                <Button
-                  className="w-fit mb-4 rounded"
-                  variant="outline"
-                  onClick={() => setActiveTab("marketplace")}
-                >
-                  <Plus className="mr-2 h-4 w-4" /> New Chat
-                </Button>
+          <TabsContent value="chats" className="flex flex-col overflow-hidden">
+            <div className="p-4 flex flex-col">
+              <Button
+                className="w-fit mb-4 rounded"
+                variant="outline"
+                onClick={() => setActiveTab("marketplace")}
+              >
+                <Plus className="mr-2 h-4 w-4" /> New Chat
+              </Button>
+              <div className="overflow-y-auto flex flex-col gap-2 scrollbar-hide">
                 {chats.map((chat) => (
                   <Button
                     key={chat.id}
                     variant="ghost"
-                    className="justify-start mb-1 font-normal border border-gray-200 rounded-lg p-2"
+                    className="justify-start mb-1 font-normal border border-gray-200 rounded-lg p-2 w-full"
                     onClick={() => setSelectedChat(chat)}
                   >
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    <span className="break-words flex flex-wrap w-full">
+                    <MessageSquare className="mr-2 h-4 w-4 flex-shrink-0" />
+                    <span className="truncate overflow-hidden">
                       {chat.name}
                     </span>
                   </Button>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </TabsContent>
         </Tabs>
         <Separator />
@@ -463,8 +482,17 @@ export function MultiAgentChat(props: AgentProp) {
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center space-x-4 mb-4">
                 <div>
-                  <h3 className="font-semibold">{userProfile.name}</h3>
-                  <p className="text-sm text-gray-500">{userProfile.email}</p>
+                  <Avatar>
+                    <AvatarImage src={`${userProfile.profileImage}`} />
+                    <AvatarFallback>{userProfile.name.toUpperCase().slice(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <h3 className="font-semibold">{userProfile ? userProfile.name : "User"}</h3>
+                  <p className="text-sm text-gray-500">{userProfile ? userProfile.email : "Email"}</p>
+                  <UserProfileDialog
+                    triggerButton={(
+                      <Button className="mt-2 bg-black text-white hover:text-black">Edit Profile</Button>
+                    )}
+                  />
                 </div>
               </div>
               <div className="flex items-center space-x-4">
@@ -479,8 +507,8 @@ export function MultiAgentChat(props: AgentProp) {
                 <span className="text-xs text-gray-500 px-2 py-1 flex-grow truncate">
                   {walletAddress
                     ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(
-                        -4
-                      )}`
+                      -4
+                    )}`
                     : ""}
                 </span>
                 <Button
@@ -590,16 +618,14 @@ export function MultiAgentChat(props: AgentProp) {
               {selectedChat.messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`mb-4 ${
-                    message.role === "user" ? "text-right" : "text-left"
-                  }`}
+                  className={`mb-4 ${message.role === "user" ? "text-right" : "text-left"
+                    }`}
                 >
                   <div
-                    className={`inline-block p-3 rounded-xl ${
-                      message.role === "user"
-                        ? "bg-slate-600 text-white"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
+                    className={`inline-block p-3 rounded-xl ${message.role === "user"
+                      ? "bg-slate-600 text-white"
+                      : "bg-gray-100 text-gray-800"
+                      }`}
                   >
                     {message.role === "agent" && (
                       <div className="font-semibold text-sm mb-1 text-gray-600">
