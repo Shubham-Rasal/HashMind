@@ -5,14 +5,14 @@
 - [Table of Contents](#table-of-contents)
 - [Project Idea](#project-idea)
 - [Our Approach](#our-approach)
-- [Workflow](#workflow)
-- [Challenges We Faced](#challenges-we-faced)
-- [Technologies We Used](#technologies-we-used)
+- [Architecture](#architecture)
+- - [Technologies We Used](#technologies-we-used)
   - [XMTP Chat Interface](#xmtp-chat-interface)
   - [Hedera Consensus Service](#hedera-consensus-service)
   - [Galadrieal Factory Contract](#galadrieal-factory-contract)
-  - [The Graph](#the-graph)
-- [Architecture](#architecture)
+  - [Web3Auth](#web3auth)
+  - [Lit Protocol](#lit-protocol)
+- [Challenges We Faced](#challenges-we-faced)
 - [Installation and Setup Guide](#installation-and-setup-guide)
   - [Install the Next.js Frontend](#install-the-nextjs-frontend)
 - [Team Members](#team-members)
@@ -29,9 +29,11 @@ The complexity of hedge fund operations shows a clear demand for a marketplace w
 This vision is enhanced by enabling everyday users to create specialized agents simply by chatting with our bot. Through a chat interface, users can easily develop these agents, which can then be sold and utilized on the marketplace, allowing the creators to earn revenue from their contributions.
 ## Our Approach
 
+## Architecture 
 
-## Workflow
-To understand the workings of our platform, you can refer to this workflow diagram which clearly shows how a user will interact with our platform - https://claude.site/artifacts/6296118b-351c-49a8-badc-349d91e93b83
+![Screenshot 2024-09-08 193419](https://github.com/user-attachments/assets/adf52161-9713-4bd0-9996-6e3977dab30a)
+
+
 
 ## Technologies We Used
 
@@ -43,24 +45,40 @@ Here’s how we have used various technologies to make this project a reality.
 
 ### XMTP Chat Interface
 
-To make the agent creation process seamless,  we use the bot creation feature from XMTP. This enables everyday users to use our product by abstracting away all the complexity behind the chat interface.
+Our platform leverages XMTP for secure, decentralized messaging, enabling us to process agent creation prompts and interact with smart contracts to deploy and manage AI agents on the blockchain, ensuring privacy and reliability throughout the process.
 
 ### Hedera Consensus Service
 
-The agents need to communicate with each other which demands a decentralized message service. This required is fulfilled by HCS (Hedera Consensus Service) which will act like a message pub/sub broker. 
-
-AI agents can publish their actions to dedicated topics. Other agents or the dashboard can query these topics via an API to show what is happening.
+Hedera enables secure and efficient internal dialogue for AI agents through its distributed consensus service, allowing for rapid and reliable decision-making in decentralized environments.
 
 ### Galadrieal Factory Contract
 
-Agent creation is enabled through an agent factory contract that will be responsible for creating custom agents with prompts set by the user. These prompts can be customized by providing tools like APIs, docs, search, etc. These agent contracts will be associated with the original creator and whenever this agent is used, the creator will get paid.
+Galadriel is a Layer 1 blockchain specifically designed for AI applications, allowing developers to build decentralized AI solutions using familiar Solidity smart contracts, effectively bridging the gap between blockchain and artificial intelligence.
+
+### Web3Auth 
+
+Web3Auth integration provides a seamless onboarding experience, allowing users to authenticate using familiar Web2 providers while securely connecting to blockchain wallets. This approach significantly reduces entry barriers for new users while maintaining the security benefits of Web3 technology.
+
+### Lit Protocol
+
+Lit Protocol offers decentralized encryption and access control mechanisms, ensuring robust protection for user privacy and sensitive data in blockchain-based applications, enhancing overall security and trust.
+
+## Challenges we Faced
+
+1. On-demand agent creation allows the system to dynamically generate and deploy agents tailored to specific user tasks or needs in real-time. These agents are designed to execute actions and respond based on user requirements.
+
+2. Web3 authentication enables secure, decentralized transaction handling on behalf of users. This ensures that all blockchain-based actions are authenticated without compromising the user's control or ownership of their assets.
+
+3. Privacy protection is a core feature, ensuring that users' personal details remain encrypted and inaccessible to unauthorized parties. The system is designed to handle sensitive data with strict confidentiality and security protocols.
+
+4. Agent communication facilitates seamless interactions between autonomous agents, enabling them to collaborate, share information, and execute complex tasks in a coordinated manner. This inter-agent dialogue ensures efficient problem-solving and task management, which has been incorporated using Hedera.
 
 
 ## Installation and Setup Guide
 To get started with Deano, follow these steps:
 
 1. Clone the repo: `git clone https://github.com/Shubham-Rasal/HashMind.git`
-2. `cd Deano`
+2. `cd HashMind`
 
 ### Install the Next.js Frontend
 
