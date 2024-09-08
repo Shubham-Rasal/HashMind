@@ -422,9 +422,9 @@ export function MultiAgentChat(props: AgentProp) {
   };
 
   return (
-    <div className="grid grid-cols-12 h-screen bg-gray-100">
+    <div className="grid grid-cols-12 h-screen bg-green-700/10">
       {/* Sidebar */}
-      <div className="col-span-3 bg-white shadow-lg flex flex-col h-screen overflow-hidden sticky top-0">
+      <div className="col-span-3 bg-slate-100 shadow-lg flex flex-col h-screen overflow-hidden sticky top-0">
         <div className="p-6 font-bold text-xl text-gray-900 border-b border-gray-200">
           Multi-Agent Chat
         </div>
@@ -442,7 +442,7 @@ export function MultiAgentChat(props: AgentProp) {
           <TabsContent value="chats" className="flex flex-col overflow-hidden">
             <div className="p-4 flex flex-col">
               <Button
-                className="w-fit mb-4 rounded"
+                className="w-full border-none mb-4 rounded bg-green-700 text-white hover:bg-green-700/90 hover:text-white"
                 variant="outline"
                 onClick={() => setActiveTab("marketplace")}
               >
@@ -453,7 +453,7 @@ export function MultiAgentChat(props: AgentProp) {
                   <Button
                     key={chat.id}
                     variant="ghost"
-                    className="justify-start mb-1 font-normal border border-gray-200 rounded-lg p-2 w-full"
+                    className="justify-start mb-1 font-normal border border-green-700 rounded-lg p-2 w-full"
                     onClick={() => setSelectedChat(chat)}
                   >
                     <MessageSquare className="mr-2 h-4 w-4 flex-shrink-0" />
@@ -526,7 +526,7 @@ export function MultiAgentChat(props: AgentProp) {
       </div>
 
       {/* Main Area */}
-      <div className="col-span-9 flex flex-col">
+      <div className="col-span-9 flex flex-col overflow-y-auto">
         {activeTab === "marketplace" ? (
           <div className="flex-grow overflow-auto h-screen">
             <div className="p-6">
@@ -535,7 +535,7 @@ export function MultiAgentChat(props: AgentProp) {
                 {props.agents.map((agent: Agent) => (
                   <Card
                     key={agent.address}
-                    className="overflow-hidden shadow-md rounded"
+                    className="overflow-hidden shadow-md rounded-md bg-white"
                   >
                     <CardHeader className="p-4">
                       <div className="flex space-y-2 items-center space-x-4">
@@ -623,12 +623,12 @@ export function MultiAgentChat(props: AgentProp) {
                 >
                   <div
                     className={`inline-block p-3 rounded-xl ${message.role === "user"
-                      ? "bg-slate-600 text-white"
-                      : "bg-gray-100 text-gray-800"
+                      ? "bg-green-700 text-white rounded-br-none"
+                      : "bg-gray-100 text-gray-800 rounded-bl-none"
                       }`}
                   >
                     {message.role === "agent" && (
-                      <div className="font-semibold text-sm mb-1 text-gray-600">
+                      <div className="font-semibold text-sm mb-1 text-green-700">
                         {
                           selectedChat.agents.find(
                             (a) => a.address === message.agentId
@@ -650,7 +650,7 @@ export function MultiAgentChat(props: AgentProp) {
                   onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                   className="flex-grow"
                 />
-                <Button onClick={handleSendMessage}>
+                <Button onClick={handleSendMessage} className="bg-green-700/30 text-black hover:bg-green-700 hover:text-white">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
