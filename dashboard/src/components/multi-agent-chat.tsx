@@ -34,12 +34,7 @@ import { createTopic, submitMessage } from "@/app/actions/hedera-consensus-servi
 import { Client, PrivateKey } from "@hashgraph/sdk";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { UserProfileDialog } from "./user-profile-dialog";
-
-
-import {
-  createTopic,
-  submitMessage,
-} from "@/app/actions/hedera-consensus-service";
+import { twMerge } from "tailwind-merge";
 import {
   Dialog,
   DialogContent,
@@ -49,6 +44,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import localFont from "next/font/local";
+import Link from "next/link";
+
 const clientId =
   "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ";
 
@@ -95,6 +93,11 @@ interface Message {
   role: string;
   content: string;
 }
+
+const Instrument = localFont({
+  src: [{ path: "../../fonts/InstrumentSerif-Italic.ttf" }],
+  display: "swap",
+});
 
 export function MultiAgentChat(props: AgentProp) {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -407,7 +410,7 @@ export function MultiAgentChat(props: AgentProp) {
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const wallet = new Wallet(privateKey, provider);
     const contract = new Contract(contractAddress, abi, wallet);
-    const maxIterations = 5; 
+    const maxIterations = 5;
 
     // Call the runAgent function
     const transactionResponse = await contract.runAgent(query, maxIterations);
@@ -508,9 +511,13 @@ export function MultiAgentChat(props: AgentProp) {
     <div className="grid grid-cols-12 h-screen bg-green-700/10">
       {/* Sidebar */}
       <div className="col-span-3 bg-slate-100 shadow-lg flex flex-col h-screen overflow-hidden sticky top-0">
-        <div className="p-6 font-bold text-xl text-gray-900 border-b border-gray-200">
-          Multi-Agent Chat
-        </div>
+        <Link href="/" className="flex items-center mt-4 mx-auto">
+          <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">#<span className={twMerge(
+            Instrument.className,
+            "text-green-700 dark:text-green-400",
+
+          )}>Mind</span></span>
+        </Link>
         <Tabs
           value={activeTab}
           onValueChange={(value) =>
@@ -573,7 +580,7 @@ export function MultiAgentChat(props: AgentProp) {
                   <p className="text-sm text-gray-500">{userProfile ? userProfile.email : "Email"}</p>
                   <UserProfileDialog
                     triggerButton={(
-                      <Button className="mt-2 bg-black text-white hover:text-black">Edit Profile</Button>
+                      <Button className="mt-2 bg-green-700 text-white hover:text-green-700">Edit Profile</Button>
                     )}
                   />
                 </div>
@@ -691,9 +698,9 @@ export function MultiAgentChat(props: AgentProp) {
               </h2>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button 
-                  onClick={handleDialogOpen}
-                  variant="outline">View Agent Dialog</Button>
+                  <Button
+                    onClick={handleDialogOpen}
+                    variant="outline">View Agent Dialog</Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[500px] bg-white rounded">
                   <DialogHeader>

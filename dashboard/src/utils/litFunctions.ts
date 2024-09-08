@@ -6,7 +6,7 @@ export async function encrypt(message: string): Promise<void> {
   try {
     const response = await axios.post(`${API_BASE_URL}/encrypt`, { message });
     const { ciphertext, dataToEncryptHash } = response.data;
-
+    console.log(ciphertext, dataToEncryptHash);
     // Save to localStorage
     localStorage.setItem('litEncryption', JSON.stringify({ ciphertext, dataToEncryptHash }));
     console.log('Encryption data saved to localStorage');
