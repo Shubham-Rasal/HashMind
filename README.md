@@ -88,9 +88,41 @@ To get started with Deano, follow these steps:
 
 ### Install the Next.js Frontend
 
-1. Change directory to client by `cd client`
+1. Change directory to client by `cd dashboard`
 2. Install npm packages by running `npm i`
-3. Start the dev server by running `npm run dev`
+3. setup env variable according to .env.example file
+4. Start the dev server by running `npm run dev`
+
+### Setup backend for lit protocol
+
+1. Change directory to client by `cd backend`
+2. Install npm packages by running `npm i`
+3. setup .env file which will have env variable `PRIVATE_KEY`, which will be your Ethereum wallet address
+4. Start the dev server by running `npm start`
+
+### Follow these steps to set up message kit for XMTP:
+
+1. Navigate to the project directory:
+    ```sh
+    cd ./message-kit
+    ```
+
+2. Install dependencies:
+    ```sh
+    npm install
+    ```
+3. Set up these variables in your app
+
+```sh
+KEY= # 0x... the private key of the app (with the 0x prefix)
+REDIS_CONNECTION_STRING= # redis db connection string
+MSG_LOG=true # logs the message on the console
+```
+
+4. Run the project:
+    ```sh
+    npm dev
+    ```
 
 ## Team Members
 
