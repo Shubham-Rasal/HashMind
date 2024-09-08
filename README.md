@@ -7,20 +7,23 @@
 
 ## Table of Contents 
 
-- [Table of Contents](#table-of-contents)
-- [Project Idea](#project-idea)
-- [Our Approach](#our-approach)
-- [Architecture](#architecture)
-- - [Technologies We Used](#technologies-we-used)
-  - [XMTP Chat Interface](#xmtp-chat-interface)
-  - [Hedera Consensus Service](#hedera-consensus-service)
-  - [Galadrieal Factory Contract](#galadrieal-factory-contract)
-  - [Web3Auth](#web3auth)
-  - [Lit Protocol](#lit-protocol)
-- [Challenges We Faced](#challenges-we-faced)
-- [Installation and Setup Guide](#installation-and-setup-guide)
-  - [Install the Next.js Frontend](#install-the-nextjs-frontend)
-- [Team Members](#team-members)
+- [HashMind](#hashmind)
+  - [Table of Contents](#table-of-contents)
+  - [Project Idea](#project-idea)
+  - [Our Approach](#our-approach)
+  - [Architecture](#architecture)
+  - [Technologies We Used](#technologies-we-used)
+    - [XMTP Chat Interface](#xmtp-chat-interface)
+    - [Hedera Consensus Service](#hedera-consensus-service)
+    - [Galadrieal Factory Contract](#galadrieal-factory-contract)
+    - [Web3Auth](#web3auth)
+    - [Lit Protocol](#lit-protocol)
+  - [Challenges we Faced](#challenges-we-faced)
+  - [Installation and Setup Guide](#installation-and-setup-guide)
+    - [Install the Next.js Frontend](#install-the-nextjs-frontend)
+    - [Setup backend for lit protocol](#setup-backend-for-lit-protocol)
+    - [Follow these steps to set up message kit for XMTP:](#follow-these-steps-to-set-up-message-kit-for-xmtp)
+  - [Team Members](#team-members)
 
 ## Project Idea
 Decentralized Marketplace for crowd-sourced, AI-agents for all things finance.
@@ -51,23 +54,30 @@ Here’s how we have used various technologies to make this project a reality.
 
 ### XMTP Chat Interface
 
-Our platform leverages XMTP for secure, decentralized messaging, enabling us to process agent creation prompts and interact with smart contracts to deploy and manage AI agents on the blockchain, ensuring privacy and reliability throughout the process.
+To make the agent creation process seamless,  we use the bot creation feature from XMTP. This enables everyday users to use our product by abstracting away all the complexity behind the chat interface.
+
 
 ### Hedera Consensus Service
 
-Hedera enables secure and efficient internal dialogue for AI agents through its distributed consensus service, allowing for rapid and reliable decision-making in decentralized environments.
+Hedera enables unique internal dialogue for AI agents through its distributed consensus service, allowing for rapid and reliable decision-making in decentralized environments.
 
 ### Galadrieal Factory Contract
 
 Galadriel is a Layer 1 blockchain specifically designed for AI applications, allowing developers to build decentralized AI solutions using familiar Solidity smart contracts, effectively bridging the gap between blockchain and artificial intelligence.
 
+Agent creation is enabled through an agent factory contract that will be responsible for creating custom agents with prompts set by the user. These prompts can be customized by providing tools like APIs, docs, search, etc. These agent contracts will be associated with the original creator and whenever this agent is used.
+
 ### Web3Auth 
 
-Web3Auth integration provides a seamless onboarding experience, allowing users to authenticate using familiar Web2 providers while securely connecting to blockchain wallets. This approach significantly reduces entry barriers for new users while maintaining the security benefits of Web3 technology.
+Web3Auth integration provides a seamless onboarding experience, allowing users to authenticate using familiar Web2 providers while securely connecting to blockchain wallets. 
+
+In our case, the UX helps the new user to seemlessly create a wallet and start using the platform right away.
 
 ### Lit Protocol
 
 Lit Protocol offers decentralized encryption and access control mechanisms, ensuring robust protection for user privacy and sensitive data in blockchain-based applications, enhancing overall security and trust.
+
+We encrypt the custom user instructions and give access only to the requried agents. This ensures that the user's data is safe and secure.
 
 ## Challenges we Faced
 

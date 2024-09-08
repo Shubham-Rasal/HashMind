@@ -525,7 +525,7 @@ export function MultiAgentChat(props: AgentProp) {
               >
                 <Plus className="mr-2 h-4 w-4" /> New Chat
               </Button>
-              <div className="overflow-y-auto flex flex-col gap-2 scrollbar-hide">
+              <div className="overflow-y-auto h-48 flex flex-col gap-2 scrollbar-hide">
                 {chats.map((chat) => (
                   <Button
                     key={chat.id}
@@ -687,11 +687,11 @@ export function MultiAgentChat(props: AgentProp) {
                 <DialogTrigger asChild>
                   <Button
                     onClick={handleDialogOpen}
-                    variant="outline">View Agent Dialog</Button>
+                    variant="outline">View Agent Discussion</Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[500px] bg-white rounded">
                   <DialogHeader>
-                    <DialogTitle>Agent Internal Dialog</DialogTitle>
+                    <DialogTitle>Agent Internal Discussion</DialogTitle>
                   </DialogHeader>
                   <ScrollArea className=" h-[400px] w-full rounded-md border p-4">
                     {isLoading ? (

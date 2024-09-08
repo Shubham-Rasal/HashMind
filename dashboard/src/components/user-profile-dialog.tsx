@@ -38,7 +38,11 @@ export function UserProfileDialog({ triggerButton }: UserProfileDialogProps) {
     try {
       const detailsString = `details about user: ${details}, custom instructions: ${customInstructions}`;
 
+    try {
       await encrypt(detailsString);
+    } catch (encryptionError) {
+      console.error("Error encrypting details:", encryptionError);
+    }
 
       console.log("Submitted:", { customInstructions, details });
       setOpen(false);
