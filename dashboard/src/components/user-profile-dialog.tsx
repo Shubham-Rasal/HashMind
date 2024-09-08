@@ -16,18 +16,18 @@ interface UserProfileDialogProps {
 export function UserProfileDialog({ triggerButton }: UserProfileDialogProps) {
     const [open, setOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
-    const [name, setName] = useState('')
+    const [customInstructions, setCustomInstructions] = useState('')
     const [details, setDetails] = useState('')
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
         try {
-            const detailsString = `name: ${name}, details about user: ${details}`
+            const detailsString = `details about user: ${details}, custom instructions: ${customInstructions}`
 
             await encrypt(detailsString)
 
-            console.log('Submitted:', { name, details })
+            console.log('Submitted:', { customInstructions, details })
             setOpen(false)
         } catch (error) {
             console.error('Error submitting form:', error)
@@ -43,7 +43,7 @@ export function UserProfileDialog({ triggerButton }: UserProfileDialogProps) {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px] bg-white rounded-md">
                 <DialogHeader>
-                    <DialogTitle>Edit profile</DialogTitle>
+                    <DialogTitle>Custom Instructions</DialogTitle>
                     <DialogDescription>
                         Provide information about yourself to help our agents assist you better.
                     </DialogDescription>
@@ -52,12 +52,13 @@ export function UserProfileDialog({ triggerButton }: UserProfileDialogProps) {
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="name" className="text-right">
-                                Name
+                                Custom Instructions
                             </Label>
-                            <Input
+                            <Textarea
                                 id="name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                value={customInstructions}
+                                placeholder="Provide custom instructions that will help our agents assist you better"
+                                onChange={(e) => setCustomInstructions(e.target.value)}
                                 className="col-span-3"
                             />
                         </div>
@@ -69,7 +70,7 @@ export function UserProfileDialog({ triggerButton }: UserProfileDialogProps) {
                                 id="details"
                                 value={details}
                                 onChange={(e) => setDetails(e.target.value)}
-                                placeholder="Provide specific details that will help our agents assist you better"
+                                placeholder="Provide details about yourself"
                                 className="col-span-3"
                             />
                         </div>
