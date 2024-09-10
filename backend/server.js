@@ -1,5 +1,4 @@
 import express from "express"
-import cors from "cors"  // Add this import
 
 import { encryptString, decryptToString, LitNodeClient } from "@lit-protocol/lit-node-client";
 import { Wallet } from "ethers";
