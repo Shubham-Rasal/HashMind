@@ -136,7 +136,7 @@ MSG_LOG=true # logs the message on the console
 
 ## Team Members
 
-[Shubham Rasaal](https://devfolio.co/@bluequbits)
+[Shubham Rasal](https://devfolio.co/@bluequbits)
 
 [Ayush Kumar Singh](https://devfolio.co/@ayush4345)
 
