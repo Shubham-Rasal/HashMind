@@ -140,4 +140,4 @@ MSG_LOG=true # logs the message on the console
 
 [Ayush Kumar Singh](https://devfolio.co/@ayush4345)
 
-[Mardav Chirag Gandhi](https://devfolio.co/@MCG)
+[Mardav Chirag Gandhi](https://devfolio.co/@marcdhi)
